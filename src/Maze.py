@@ -89,3 +89,12 @@ class Maze:
                 count_walls += 1
         
         return count_walls == 3
+    
+    def generate_coins(self, coin_amount) -> list:
+        possible_points = []
+        for x in range(len(self.maze_mtx)):
+            for y in range(len(self.maze_mtx[0])):
+                if (self.check_adjacent(x, y) and self.maze_mtx[x][y] == 0):
+                    possible_points.append((x,y))
+
+        return random.sample(possible_points, coin_amount)
