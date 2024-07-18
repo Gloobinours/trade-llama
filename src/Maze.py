@@ -1,5 +1,17 @@
 import numpy as np
 import random
+from enum import Enum
+
+class CellState(Enum):
+    PASSAGE = 0
+    WALL = 1
+    COIN = 2
+
+class Cell:
+    def __init__(self, x: int, y: int) -> None:
+        self.x: int = x
+        self.y: int = y
+        self.state: CellState
 
 class Maze:
 
