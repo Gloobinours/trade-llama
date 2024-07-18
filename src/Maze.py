@@ -98,3 +98,11 @@ class Maze:
                     possible_points.append((x,y))
 
         return random.sample(possible_points, coin_amount)
+    
+    def add_coin_to_maze(self, coin_amount) -> None:
+        coin_pos = self.generate_coins(coin_amount)
+        for x in range(len(self.maze_mtx)):
+            for y in range(len(self.maze_mtx[0])):
+                for pos in coin_pos:
+                    if (x == pos[0] and y == pos[1]):
+                        self.maze_mtx[x][y] = 2
