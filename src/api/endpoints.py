@@ -9,5 +9,9 @@ class MazeEndpoint(Resource):
 
     def get(self, maze_size):
         maze: Maze = Maze(maze_size, 3)
-        mtx = maze.maze_mtx.tolist()
+        mtx = []
+        for x in range(maze_size):
+            mtx.append([])
+            for y in range(maze_size):
+                mtx[x].append(maze.maze_mtx[x][y].state.value)
         return jsonify(matrix=mtx)
