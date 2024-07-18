@@ -16,7 +16,11 @@ class Maze:
         self.add_coin_to_maze(coin_amount)
 
     def generate_matrix(self) -> np.matrix:
-        """Generate a square maze."""
+        """Generate a square matrix
+
+        Returns:
+            np.matrix: _description_
+        """
         maze = np.ones((self.size, self.size), dtype=int)
         start = (0, 0)
         end = (self.size - 1, self.size - 1)
@@ -91,6 +95,14 @@ class Maze:
         return count_walls == 3
     
     def generate_coins(self, coin_amount) -> list:
+        """Generate coins when 3 walls around
+
+        Args:
+            coin_amount (_type_): _description_
+
+        Returns:
+            list: _description_
+        """
         possible_points = []
         for x in range(len(self.maze_mtx)):
             for y in range(len(self.maze_mtx[0])):
@@ -100,6 +112,11 @@ class Maze:
         return random.sample(possible_points, coin_amount)
     
     def add_coin_to_maze(self, coin_amount) -> None:
+        """Append coins to maze matrix
+
+        Args:
+            coin_amount (_type_): _description_
+        """
         coin_pos = self.generate_coins(coin_amount)
         for x in range(len(self.maze_mtx)):
             for y in range(len(self.maze_mtx[0])):
