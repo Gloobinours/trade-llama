@@ -38,6 +38,7 @@ class Maze:
         self.coin_amount: int = coin_amount
         self.maze_mtx = self.generate_maze_matrix()
         self.add_coin_to_maze(coin_amount)
+        self.coin_list = []
 
     def generate_matrix(self) -> list:
         matrix = []
@@ -156,6 +157,7 @@ class Maze:
                 for pos in coin_pos:
                     if (x == pos[0] and y == pos[1]):
                         self.maze_mtx[x][y].state = CellState.COIN
+                        self.coin_list.append(self.maze_mtx[x][y])
     
     def __str__(self) -> str:
         return '\n'.join(' '.join(str(cell) for cell in row) for row in self.maze_mtx)
