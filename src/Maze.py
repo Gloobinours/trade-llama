@@ -37,8 +37,8 @@ class Maze:
         self.size: int = size
         self.coin_amount: int = coin_amount
         self.maze_mtx = self.generate_maze_matrix()
-        self.add_coin_to_maze(coin_amount)
         self.coin_list = []
+        self.add_coin_to_maze(coin_amount)
 
     def generate_matrix(self) -> list:
         matrix = []
