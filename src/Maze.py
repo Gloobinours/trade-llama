@@ -3,15 +3,19 @@ import random
 
 class Maze:
 
-    def __init__(self, size: int) -> None:
-        """Maze constructor.
-        size : int
-            size of the maze
+    def __init__(self, size: int, coin_amount : int) -> None:
+        """Constructor for Maze
+
+        Args:
+            size (int): _description_
+            coin_amount (int): _description_
         """
         self.size: int = size
-        self.maze_mtx : np.matrix = self.generateMaze()
+        self.coin_amount = coin_amount
+        self.maze_mtx : np.matrix = self.generate_matrix()
+        self.add_coin_to_maze(coin_amount)
 
-    def generateMaze(self) -> np.matrix:
+    def generate_matrix(self) -> np.matrix:
         """Generate a square maze."""
         maze = np.ones((self.size, self.size), dtype=int)
         start = (0, 0)
@@ -57,4 +61,31 @@ class Maze:
             col -= 1
         
         maze[end] = 0  # Ensure exit point is 0
+
         return maze
+    
+    def check_adjacent(self, row, col) -> bool:
+        """return true if excatly 3 adjacent wall to point
+
+        Args:
+            row (_type_): _description_
+            col (_type_): _description_
+
+        Returns:
+            bool: _description_
+        """
+        rows = len(self.maze_mtx)
+        cols = len(self.maze_mtx[0])
+
+        directions = [(-1, 0), (1,0), (0, -1), (0, 1)]
+
+        count_walls = 0
+
+        for d in directions:
+            new_row = row + d[0]
+            new_col = col + d[1]
+
+            if (0 <= new_row < rows) and (0 <= new_col < cols) and (self.maze_mtx[new_row][new_col] == 1):
+                count_walls += 1
+        
+        return count_walls == 3
