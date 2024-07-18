@@ -7,6 +7,9 @@ class CellState(Enum):
     WALL = 1
     COIN = 2
 
+    def __str__(self) -> str:
+        return f"{self.value}"
+
 class Cell:
     def __init__(self, x: int, y: int) -> None:
         self.x: int = x
@@ -34,7 +37,7 @@ class Maze:
         """
         self.size: int = size
         self.coin_amount: int = coin_amount
-        self.maze_mtx : np.matrix = self.generate_maze_matrix()
+        self.maze_mtx = self.generate_maze_matrix()
         self.add_coin_to_maze(coin_amount)
 
     def generate_matrix(self) -> list:
@@ -42,7 +45,6 @@ class Maze:
         for x in range(self.size):
             matrix.append([])
             for y in range(self.size):
-                print(f'{x} {y}')
                 cell: Cell = Cell(x, y)
                 matrix[x].append(cell)
         return matrix
@@ -88,7 +90,7 @@ class Maze:
             if col > 0 and maze[row][col - 1].state == CellState.PASSAGE:
                 maze[row][col].state = CellState.PASSAGE
                 break
-            if maze[row - 1][col].state == 1 and maze[row][col - 1].state == CellState.WALL:
+            if maze[row - 1][col].state == CellState.WALL and maze[row][col - 1].state == CellState.WALL:
                 if random.choice([True, False]):
                     maze[row - 1][col].state = CellState.PASSAGE
                 else:
@@ -121,7 +123,7 @@ class Maze:
             new_row = row + d[0]
             new_col = col + d[1]
 
-            if (0 <= new_row < rows) and (0 <= new_col < cols) and (self.maze_mtx[new_row][new_col] == 1):
+            if (0 <= new_row < rows) and (0 <= new_col < cols) and (self.maze_mtx[new_row][new_col].state == CellState.WALL):
                 count_walls += 1
         
         return count_walls == 3
@@ -138,7 +140,7 @@ class Maze:
         possible_points = []
         for x in range(len(self.maze_mtx)):
             for y in range(len(self.maze_mtx[0])):
-                if (self.check_adjacent(x, y) and self.maze_mtx[x][y] == 0):
+                if (self.check_adjacent(x, y) and self.maze_mtx[x][y].state == CellState.PASSAGE):
                     possible_points.append((x,y))
 
         return random.sample(possible_points, coin_amount)
@@ -154,4 +156,7 @@ class Maze:
             for y in range(len(self.maze_mtx[0])):
                 for pos in coin_pos:
                     if (x == pos[0] and y == pos[1]):
-                        self.maze_mtx[x][y] = 2
+                        self.maze_mtx[x][y].state = CellState.COIN
+    
+    def __str__(self) -> str:
+        return '\n'.join(' '.join(str(cell) for cell in row) for row in self.maze_mtx)
