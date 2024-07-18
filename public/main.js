@@ -26,6 +26,7 @@ function drawMaze(mazeArray) {
     const cellSize = 15; // Size of each cell in pixels
     const wallColor = '#333'; // Color for walls
     const pathColor = '#fff'; // Color for paths
+    const coinColor = '#aa0'
 
     // Get the canvas element and its context
     const canvas = document.getElementById('mazeCanvas');
@@ -47,17 +48,21 @@ function drawMaze(mazeArray) {
                 // Draw wall
                 ctx.fillStyle = wallColor;
                 ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
-            } else {
+            } else if(mazeArray[y][x] === 0){
                 // Draw path
                 ctx.fillStyle = pathColor;
+                ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
+            } else {
+                // Draw path
+                ctx.fillStyle = coinColor;
                 ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
             }
         }
     }
 }
-
+let maze_size = 60;
 // Usage: Fetch maze data and then draw it
-get_maze(50)
+get_maze(maze_size)
     .then(mazeData => {
         if (mazeData && mazeData.length > 0) {
             drawMaze(mazeData); // Call drawMaze with the fetched mazeData
