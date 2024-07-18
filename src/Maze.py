@@ -40,9 +40,11 @@ class Maze:
     def generate_matrix(self) -> list:
         matrix = []
         for x in range(self.size):
+            matrix.append([])
             for y in range(self.size):
+                print(f'{x} {y}')
                 cell: Cell = Cell(x, y)
-                matrix.append(cell)
+                matrix[x].append(cell)
         return matrix
 
     def generate_maze_matrix(self) -> list:
@@ -54,47 +56,47 @@ class Maze:
         maze = self.generate_matrix()
         start = Cell(0,0)
         end = Cell(self.size - 1, self.size - 1)
-        maze[start] = CellState.PASSAGE  # Start point
+        maze[start.x][start.y] = CellState.PASSAGE  # Start point
         stack = [start]
         while stack:
             current = stack[-1]
-            maze[current] = CellState.PASSAGE
+            maze[current.x][current.y].state = CellState.PASSAGE
             neighbors = []
-            row, col = current
-            if row > 1 and maze[row - 2, col] == 1:
-                neighbors.append((row - 2, col))
-            if row < self.size - 2 and maze[row + 2, col] == 1:
-                neighbors.append((row + 2, col))
-            if col > 1 and maze[row, col - 2] == 1:
-                neighbors.append((row, col - 2))
-            if col < self.size - 2 and maze[row, col + 2] == 1:
-                neighbors.append((row, col + 2))
+            row, col = current.x, current.y
+            if row > 1 and maze[row - 2][col].state == CellState.WALL:
+                neighbors.append(maze[row - 2][col])
+            if row < self.size - 2 and maze[row + 2][col].state == CellState.WALL:
+                neighbors.append(maze[row + 2][col])
+            if col > 1 and maze[row][col - 2].state == CellState.WALL:
+                neighbors.append(maze[row][col - 2])
+            if col < self.size - 2 and maze[row][col + 2].state == CellState.WALL:
+                neighbors.append(maze[row][col + 2])
             if neighbors:
                 next_cell = random.choice(neighbors)
-                wall_between = ((current[0] + next_cell[0]) // 2, (current[1] + next_cell[1]) // 2)
-                maze[wall_between] = 0
+                wall_between = maze[(current.x + next_cell.x) // 2][(current.y + next_cell.y) // 2]
+                maze[wall_between.x][wall_between.y].state = CellState.PASSAGE
                 stack.append(next_cell)
             else:
                 stack.pop()
         
         # Ensure the exit is connected
-        row, col = end
-        while maze[row, col] == 1:
-            if row > 0 and maze[row - 1, col] == 0:
-                maze[row, col] = 0
+        row, col = end.x, end.y
+        while maze[row][col].state == CellState.WALL:
+            if row > 0 and maze[row - 1][col].state == CellState.PASSAGE:
+                maze[row][col].state = CellState.PASSAGE
                 break
-            if col > 0 and maze[row, col - 1] == 0:
-                maze[row, col] = 0
+            if col > 0 and maze[row][col - 1].state == CellState.PASSAGE:
+                maze[row][col].state = CellState.PASSAGE
                 break
-            if maze[row - 1, col] == 1 and maze[row, col - 1] == 1:
+            if maze[row - 1][col].state == 1 and maze[row][col - 1].state == CellState.WALL:
                 if random.choice([True, False]):
-                    maze[row - 1, col] = 0
+                    maze[row - 1][col].state = CellState.PASSAGE
                 else:
-                    maze[row, col - 1] = 0
+                    maze[row][col - 1].state = CellState.PASSAGE
             row -= 1
             col -= 1
         
-        maze[end] = 0  # Ensure exit point is 0
+        maze[end.x][end.y].state = CellState.PASSAGE  # Ensure exit point is a passage
 
         return maze
     
