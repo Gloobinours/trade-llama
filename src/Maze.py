@@ -11,10 +11,20 @@ class Cell:
     def __init__(self, x: int, y: int) -> None:
         self.x: int = x
         self.y: int = y
-        self.state: CellState
+        self.state: CellState = CellState.WALL
+
+    def change_state_to_wall(self):
+        self.state = CellState.WALL
+    def change_state_to_coin(self):
+        self.state = CellState.COIN
+
+    def __eq__(self, other) -> bool:
+        return self.x == other.x and self.y == other.y
+    def __str__(self) -> str:
+        return f"{self.state}"
+
 
 class Maze:
-
     def __init__(self, size: int, coin_amount : int) -> None:
         """Constructor for Maze
 
@@ -23,24 +33,32 @@ class Maze:
             coin_amount (int): _description_
         """
         self.size: int = size
-        self.coin_amount = coin_amount
-        self.maze_mtx : np.matrix = self.generate_matrix()
+        self.coin_amount: int = coin_amount
+        self.maze_mtx : np.matrix = self.generate_maze_matrix()
         self.add_coin_to_maze(coin_amount)
 
-    def generate_matrix(self) -> np.matrix:
+    def generate_matrix(self) -> list:
+        matrix = []
+        for x in range(self.size):
+            for y in range(self.size):
+                cell: Cell = Cell(x, y)
+                matrix.append(cell)
+        return matrix
+
+    def generate_maze_matrix(self) -> list:
         """Generate a square matrix
 
         Returns:
             np.matrix: _description_
         """
-        maze = np.ones((self.size, self.size), dtype=int)
-        start = (0, 0)
-        end = (self.size - 1, self.size - 1)
-        maze[start] = 0  # Start point
+        maze = self.generate_matrix()
+        start = Cell(0,0)
+        end = Cell(self.size - 1, self.size - 1)
+        maze[start] = CellState.PASSAGE  # Start point
         stack = [start]
         while stack:
             current = stack[-1]
-            maze[current] = 0
+            maze[current] = CellState.PASSAGE
             neighbors = []
             row, col = current
             if row > 1 and maze[row - 2, col] == 1:
