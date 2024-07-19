@@ -1,4 +1,4 @@
-from Maze import Maze, Cell
+from Maze import Maze
 
 def main() -> None:
     maze: Maze = Maze(20, 2)
