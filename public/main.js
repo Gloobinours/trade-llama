@@ -1,5 +1,13 @@
+let mazeData = null;
+let maze_size = 60;
+
 // Function to fetch maze data from the server
 function get_maze(size) {
+    if (mazeData) {
+        // If maze data is already fetched, return it directly
+        return Promise.resolve(mazeData);
+    }
+
     return fetch(`http://127.0.0.1:5000/maze/${size}`)
         .then(response => {
             if (!response.ok) {
@@ -12,13 +20,15 @@ function get_maze(size) {
             if (!data || !data.matrix || data.matrix.length === 0) {
                 throw new Error('Fetched maze data is empty or invalid');
             }
-            return data.matrix; // Return the maze matrix array
+            mazeData = data.matrix; // Save maze matrix array in mazeData variable
+            return mazeData;
         })
         .catch(error => {
             console.error('There has been a problem with your fetch operation:', error);
             throw error; // Re-throw the error to propagate it
         });
 }
+
 
 // Function to draw the maze on the canvas
 function drawMaze(mazeArray) {
@@ -45,32 +55,17 @@ function drawMaze(mazeArray) {
     for (let y = 0; y < mazeHeight; y++) {
         for (let x = 0; x < mazeWidth; x++) {
             if (mazeArray[y][x] === 1) {
-                // Draw wall
+                // set color to wall
                 ctx.fillStyle = wallColor;
-                ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
             } else if(mazeArray[y][x] === 0){
-                // Draw path
+                // set color to path
                 ctx.fillStyle = pathColor;
-                ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
-            } else {
-                // Draw path
+            } else if(mazeArray[y][x] === 2) {
+                // set color to coin
                 ctx.fillStyle = coinColor;
-                ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
             }
+            // Draw cell
+            ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
         }
     }
 }
-let maze_size = 60;
-// Usage: Fetch maze data and then draw it
-get_maze(maze_size)
-    .then(mazeData => {
-        if (mazeData && mazeData.length > 0) {
-            drawMaze(mazeData); // Call drawMaze with the fetched mazeData
-        } else {
-            throw new Error('Fetched maze data is empty or invalid');
-        }
-    })
-    .catch(error => {
-        // Handle errors if any
-        console.error('Failed to fetch or draw maze:', error);
-    });

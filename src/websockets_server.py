@@ -1,21 +1,34 @@
 import asyncio
 import websockets
 import json
+from Maze import Maze
 
-async def send_position(websocket, path):
-    player_position = (1,2)
+maze: Maze = Maze(60, 3)
+
+async def send_maze_data(websocket, path):
+    mtx = []
+    for x in range(maze.size):
+        mtx.append([])
+        for y in range(maze.size):
+            mtx[x].append(maze.maze_mtx[x][y].state.value)
+
     while True:
-        position_json = json.dumps(player_position)
-    
-        # Send position data to the client
-        await websocket.send(position_json)
+        try:
+            mtx_json = json.dumps(mtx)
+        
+            # Send maze data to the client
+            await websocket.send(mtx_json)
 
-        # Wait before next update
-        await asyncio.sleep(0.2)
+            # Wait before next update
+            await asyncio.sleep(1)
+        except Exception as e:
+            print(f'Error sending maze data: {e}')
 
 
-# Define the function to handle incoming messages
+# Handle incoming messages
 async def server(websocket, path):
+
+    asyncio.create_task(send_maze_data(websocket, path))
     # Continuously listen for incoming messages from the client
     async for message in websocket:
         print(f"Received message from client: {message}")
