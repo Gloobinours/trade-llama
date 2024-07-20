@@ -6,11 +6,8 @@ class CellState(Enum):
     WALL = 1
     COIN = 2
 
-    def __str__(self) -> str:
-        return f"{self.value}"
-
 class Cell:
-    def __init__(self, x: int, y: int) -> None:
+    def __init__(self, x: int, y: int,) -> None:
         self.x: int = x
         self.y: int = y
         self.state: CellState = CellState.WALL
@@ -23,7 +20,7 @@ class Cell:
     def __eq__(self, other) -> bool:
         return self.x == other.x and self.y == other.y
     def __str__(self) -> str:
-        return f"{self.state}"
+        return f"[({self.x}, {self.y}), {self.state}]"
 
 
 class Maze:
@@ -40,7 +37,7 @@ class Maze:
         self.coin_list = []
         self.add_coin_to_maze(coin_amount)
 
-    def generate_matrix(self) -> list:
+    def generate_matrix(self) -> list[Cell]:
         matrix = []
         for x in range(self.size):
             matrix.append([])
@@ -49,6 +46,27 @@ class Maze:
                 matrix[x].append(cell)
         return matrix
 
+    def get_neighbors(self, cell: Cell, matrix) -> None:
+        """_summary_
+
+        Args:
+            cell (Cell): _description_
+            matrix (_type_): _description_
+
+        Returns:
+            list: list of cells
+        """
+        directions = [(-2, 0), (2,0), (0, -2), (0, 2)]
+        neighbors = []
+        for d in directions:
+            new_row = cell.x + d[0]
+            new_col = cell.y + d[1]
+
+            if (0 <= new_row < self.size) and (0 <= new_col < self.size):
+                neighbors.append(matrix[new_row][new_col])
+
+        return neighbors
+
     def generate_maze_matrix(self) -> list:
         """Generate a square matrix
 
@@ -56,52 +74,33 @@ class Maze:
             np.matrix: _description_
         """
         maze = self.generate_matrix()
-        start = Cell(0,0)
-        end = Cell(self.size - 1, self.size - 1)
-        maze[start.x][start.y] = CellState.PASSAGE  # Start point
-        stack = [start]
-        while stack:
-            current = stack[-1]
-            maze[current.x][current.y].state = CellState.PASSAGE
-            neighbors = []
-            row, col = current.x, current.y
-            if row > 1 and maze[row - 2][col].state == CellState.WALL:
-                neighbors.append(maze[row - 2][col])
-            if row < self.size - 2 and maze[row + 2][col].state == CellState.WALL:
-                neighbors.append(maze[row + 2][col])
-            if col > 1 and maze[row][col - 2].state == CellState.WALL:
-                neighbors.append(maze[row][col - 2])
-            if col < self.size - 2 and maze[row][col + 2].state == CellState.WALL:
-                neighbors.append(maze[row][col + 2])
-            if neighbors:
-                next_cell = random.choice(neighbors)
-                wall_between = maze[(current.x + next_cell.x) // 2][(current.y + next_cell.y) // 2]
-                maze[wall_between.x][wall_between.y].state = CellState.PASSAGE
-                stack.append(next_cell)
-            else:
-                stack.pop()
-        
-        # Ensure the exit is connected
-        row, col = end.x, end.y
-        while maze[row][col].state == CellState.WALL:
-            if row > 0 and maze[row - 1][col].state == CellState.PASSAGE:
-                maze[row][col].state = CellState.PASSAGE
-                break
-            if col > 0 and maze[row][col - 1].state == CellState.PASSAGE:
-                maze[row][col].state = CellState.PASSAGE
-                break
-            if maze[row - 1][col].state == CellState.WALL and maze[row][col - 1].state == CellState.WALL:
-                if random.choice([True, False]):
-                    maze[row - 1][col].state = CellState.PASSAGE
-                else:
-                    maze[row][col - 1].state = CellState.PASSAGE
-            row -= 1
-            col -= 1
-        
-        maze[end.x][end.y].state = CellState.PASSAGE  # Ensure exit point is a passage
+        # Choose the initial cell, mark it as visited and push it to the stack
+        random_row: int = random.randint(0, len(maze) - 1)
+        random_col: int = random.randint(0, len(maze[random_row]) - 1)
+        random_cell = maze[random_row][random_col]
+        visited = [random_cell]
+        stack = [random_cell]
 
+        while stack:
+            current_cell = stack.pop()
+            # List of unvisited neighbors
+            neighbors :list = [n for n in self.get_neighbors(current_cell, maze) if n not in visited]
+            # If the current cell has any neighbours which have not been visited
+            if neighbors:
+                stack.append(current_cell)
+                # Choose one of the unvisited neighbours
+                chosen_cell = random.choice(neighbors)
+                # Remove the wall between the current cell and the chosen cell
+                in_between_x = current_cell.x + (chosen_cell.x - current_cell.x) // 2
+                in_between_y = current_cell.y + (chosen_cell.y - current_cell.y) // 2
+                in_between = maze[in_between_x][in_between_y]
+                in_between.state = CellState.PASSAGE
+                chosen_cell.state = CellState.PASSAGE
+                # Mark the chosen cell as visited and push it to the stack
+                visited.append(chosen_cell)
+                stack.append(chosen_cell)
         return maze
-    
+
     def check_adjacent(self, row, col) -> bool:
         """return true if excatly 3 adjacent wall to point
 
@@ -160,4 +159,4 @@ class Maze:
                         self.coin_list.append(self.maze_mtx[x][y])
     
     def __str__(self) -> str:
-        return '\n'.join(' '.join(str(cell) for cell in row) for row in self.maze_mtx)
+        return '\n'.join(' '.join(str(cell.state.value) for cell in row) for row in self.maze_mtx)
