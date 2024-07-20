@@ -75,21 +75,22 @@ class Maze:
         """
         maze = self.generate_matrix()
         # Choose the initial cell, mark it as visited and push it to the stack
-        random_row: int = random.randint(0, len(maze) - 1)
-        random_col: int = random.randint(0, len(maze[random_row]) - 1)
-        random_cell = maze[random_row][random_col]
+        # random_row: int = random.randint(0, len(maze) - 1)
+        # random_col: int = random.randint(0, len(maze[random_row]) - 1)
+        random_cell = maze[0][0]
+        random_cell.state = CellState.PASSAGE
         visited = [random_cell]
         stack = [random_cell]
 
         while stack:
             current_cell = stack.pop()
             # List of unvisited neighbors
-            neighbors :list = [n for n in self.get_neighbors(current_cell, maze) if n not in visited]
+            unvisited_neighbors :list = [n for n in self.get_neighbors(current_cell, maze) if n not in visited]
             # If the current cell has any neighbours which have not been visited
-            if neighbors:
+            if unvisited_neighbors:
                 stack.append(current_cell)
                 # Choose one of the unvisited neighbours
-                chosen_cell = random.choice(neighbors)
+                chosen_cell = random.choice(unvisited_neighbors)
                 # Remove the wall between the current cell and the chosen cell
                 in_between_x = current_cell.x + (chosen_cell.x - current_cell.x) // 2
                 in_between_y = current_cell.y + (chosen_cell.y - current_cell.y) // 2
@@ -142,6 +143,8 @@ class Maze:
                 if (self.check_adjacent(x, y) and self.maze_mtx[x][y].state == CellState.PASSAGE):
                     possible_points.append((x,y))
 
+        if len(possible_points) < coin_amount:
+            coin_amount = len(possible_points)
         return random.sample(possible_points, coin_amount)
     
     def add_coin_to_maze(self, coin_amount) -> None:
