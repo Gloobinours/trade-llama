@@ -5,9 +5,10 @@ class CellState(Enum):
     PASSAGE = 0
     WALL = 1
     COIN = 2
+    BOMB = 3
 
 class Cell:
-    def __init__(self, x: int, y: int,) -> None:
+    def __init__(self, x: int, y: int) -> None:
         self.x: int = x
         self.y: int = y
         self.state: CellState = CellState.WALL
@@ -24,27 +25,25 @@ class Cell:
 
 
 class Maze:
-    def __init__(self, size: int, coin_amount : int) -> None:
+    def __init__(self, size: int, coin_amount : int, bomb_amount : int) -> None:
         """Constructor for Maze
 
         Args:
-            size (int): _description_
-            coin_amount (int): _description_
+            size (int): The size of the maze (it will be a square maze)
+            coin_amount (int): The number of coins to place in the maze
+            bomb_amount (int): The number of bombs to place in the maze
         """
         self.size: int = size
+        self.grid = [[Cell(x, y) for y in range(size)] for x in range(size)]
+        self.generate_grid()
+
         self.coin_amount: int = coin_amount
-        self.maze_mtx = self.generate_maze_matrix()
         self.coin_list = []
         self.add_coin_to_maze(coin_amount)
-
-    def generate_matrix(self) -> list[Cell]:
-        matrix = []
-        for x in range(self.size):
-            matrix.append([])
-            for y in range(self.size):
-                cell: Cell = Cell(x, y)
-                matrix[x].append(cell)
-        return matrix
+        
+        self.bomb_amount: int = bomb_amount
+        self.bomb_locations = []
+        self.generate_bombs(bomb_amount)
 
     def get_neighbors(self, cell: Cell, matrix) -> None:
         """_summary_
@@ -67,13 +66,13 @@ class Maze:
 
         return neighbors
 
-    def generate_maze_matrix(self) -> list:
+    def generate_grid(self) -> list:
         """Generate a square matrix
 
         Returns:
             np.matrix: _description_
         """
-        maze = self.generate_matrix()
+        maze = self.grid
         # Choose the initial cell, mark it as visited and push it to the stack
         # random_row: int = random.randint(0, len(maze) - 1)
         # random_col: int = random.randint(0, len(maze[random_row]) - 1)
@@ -112,8 +111,8 @@ class Maze:
         Returns:
             bool: _description_
         """
-        rows = len(self.maze_mtx)
-        cols = len(self.maze_mtx[0])
+        rows = len(self.grid)
+        cols = len(self.grid[0])
 
         directions = [(-1, 0), (1,0), (0, -1), (0, 1)]
 
@@ -123,7 +122,7 @@ class Maze:
             new_row = row + d[0]
             new_col = col + d[1]
 
-            if (0 <= new_row < rows) and (0 <= new_col < cols) and (self.maze_mtx[new_row][new_col].state == CellState.WALL):
+            if (0 <= new_row < rows) and (0 <= new_col < cols) and (self.grid[new_row][new_col].state == CellState.WALL):
                 count_walls += 1
         
         return count_walls == 3
@@ -138,9 +137,9 @@ class Maze:
             list: _description_
         """
         possible_points = []
-        for x in range(len(self.maze_mtx)):
-            for y in range(len(self.maze_mtx[0])):
-                if (self.check_adjacent(x, y) and self.maze_mtx[x][y].state == CellState.PASSAGE):
+        for x in range(len(self.grid)):
+            for y in range(len(self.grid[0])):
+                if (self.check_adjacent(x, y) and self.grid[x][y].state == CellState.PASSAGE):
                     possible_points.append((x,y))
 
         if len(possible_points) < coin_amount:
@@ -154,18 +153,48 @@ class Maze:
             coin_amount (_type_): _description_
         """
         coin_pos = self.generate_coins(coin_amount)
-        for x in range(len(self.maze_mtx)):
-            for y in range(len(self.maze_mtx[0])):
+        for x in range(len(self.grid)):
+            for y in range(len(self.grid[0])):
                 for pos in coin_pos:
                     if (x == pos[0] and y == pos[1]):
-                        self.maze_mtx[x][y].state = CellState.COIN
-                        self.coin_list.append(self.maze_mtx[x][y])
+                        self.grid[x][y].state = CellState.COIN
+                        self.coin_list.append(self.grid[x][y])
+
+    def generate_bombs(self, bomb_amount) -> None:
+        """Place bombs randomly
+        Args:
+            bomb_amount (int): number of bombs
+        """
+        bombspot = []
+
+        while len(bombspot) < (bomb_amount):
+            # generate random coordinates
+            x_coord = random.randint(0, self.size-1)
+            y_coord = random.randint(0, self.size-1)
+            random_cell = self.grid[x_coord][y_coord]
+
+            # check if passage, append coord
+            if random_cell.state == CellState.PASSAGE and random_cell not in bombspot:
+                bombspot.append(self.grid[x_coord][y_coord])
+                random_cell.state = CellState.BOMB
+        self.bomb_locations = bombspot
+
+    def explode_bomb(self, x, y) -> None:
+        """Break walls around bomb when touched
+
+        Args:
+            x, y (int): cell coordinates of touched bomb
+        """
+        for i in range(x-1,x+1):
+            for j in range(y-1,y+1):
+                if (i > 0 or j > 0) and self.grid[i,j].state == CellState.WALL:
+                    self.grid[i,j].state = CellState.PASSAGE
 
     def delete_coin(self, x, y) -> None:
-        coin_cell = self.maze_mtx[x][y]
+        coin_cell = self.grid[x][y]
         coin_cell.state = CellState.PASSAGE
         if coin_cell in self.coin_list:
             self.coin_list.remove(coin_cell)
     
     def __str__(self) -> str:
-        return '\n'.join(' '.join(str(cell.state.value) for cell in row) for row in self.maze_mtx)
+        return '\n'.join(' '.join(str(cell.state.value) for cell in row) for row in self.grid)
