@@ -5,9 +5,10 @@ class CellState(Enum):
     PASSAGE = 0
     WALL = 1
     COIN = 2
+    BOMB = 3
 
 class Cell:
-    def __init__(self, x: int, y: int,) -> None:
+    def __init__(self, x: int, y: int) -> None:
         self.x: int = x
         self.y: int = y
         self.state: CellState = CellState.WALL
@@ -24,7 +25,7 @@ class Cell:
 
 
 class Maze:
-    def __init__(self, size: int, coin_amount : int) -> None:
+    def __init__(self, size: int, coin_amount : int, bomb_amount : int) -> None:
         """Constructor for Maze
 
         Args:
@@ -36,6 +37,9 @@ class Maze:
         self.maze_mtx = self.generate_maze_matrix()
         self.coin_list = []
         self.add_coin_to_maze(coin_amount)
+        self.bomb_amount: int = bomb_amount
+        self.bomb_locations = self.generate_bombs(bomb_amount)
+
 
     def generate_matrix(self) -> list[Cell]:
         matrix = []
@@ -161,6 +165,33 @@ class Maze:
                         self.maze_mtx[x][y].state = CellState.COIN
                         self.coin_list.append(self.maze_mtx[x][y])
 
+    def generate_bombs(self, bomb_amount) -> list:
+        """Place bombs randomly
+        Args:
+            bomb_amount (int): number of bombs
+        """
+        bombspot = []
+
+        while len(bombspot) != (bomb_amount-1):
+            # generate random coordinates
+            x_coord = random.randint(0,self.size-1)
+            y_coord = random.randint(0,self.size-1)
+
+            # check if passage, append coord
+            if self.maze_mtx[x_coord][y_coord].state == CellState.PASSAGE and self.maze_mtx[x_coord][y_coord].state == CellState.COIN:
+                bombspot.append(self.maze_mtx[x_coord][y_coord])
+        return bombspot
+
+    def explode_bomb(self, x, y):
+        """Break walls around bomb when touched
+
+        Args:
+            x, y (int): cell coordinates of touched bomb
+        """
+        for i in range(x-1,x+1):
+            for j in range(y-1,y+1):
+                if (i > 0 or j > 0) and self.maze_mtx[i,j].state == CellState.WALL:
+                    self.maze_mtx[i,j].state = CellState.PASSAGE
     def delete_coin(self, x, y) -> None:
         coin_cell = self.maze_mtx[x][y]
         coin_cell.state = CellState.PASSAGE
