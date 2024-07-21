@@ -3,10 +3,12 @@ import math
 
 class Player:
 
-    def __init__(self, x: int, y: int, maze: Maze) -> None:
+    def __init__(self, x: int, y: int, maze: Maze, bomb_amount: int) -> None:
         self.x: int = 0
         self.y: int = 0
         self.maze: Maze = maze
+
+        self.bomb_amount: int = bomb_amount
 
     def is_walkable(self, x: int, y: int) -> bool:
         """ Check if a cell in maze is walkable given it's coordinates
