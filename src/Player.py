@@ -20,7 +20,7 @@ class Player:
             True if walkable (passage or coin)
         """
         if (x < 0 or x >= self.maze.size-1): return False
-        if (self.maze[x][y].state == CellState.WALL): return False
+        if (self.maze.grid[x][y].state == CellState.WALL): return False
         return True
 
     def move_left(self):
