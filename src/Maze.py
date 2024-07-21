@@ -167,7 +167,7 @@ class Maze:
         """
         bombspot = []
 
-        while len(bombspot) < (bomb_amount-1):
+        while len(bombspot) < (bomb_amount):
             # generate random coordinates
             x_coord = random.randint(0, self.size-1)
             y_coord = random.randint(0, self.size-1)
