@@ -8,10 +8,10 @@ from Maze import Maze
 class MazeEndpoint(Resource):
 
     def get(self, maze_size):
-        maze: Maze = Maze(maze_size, 3)
+        maze: Maze = Maze(maze_size, 3, 3)
         mtx = []
         for x in range(maze_size):
             mtx.append([])
             for y in range(maze_size):
-                mtx[x].append(maze.maze_mtx[x][y].state.value)
+                mtx[x].append(maze.grid[x][y].state.value)
         return jsonify(matrix=mtx)
