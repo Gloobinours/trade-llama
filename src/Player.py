@@ -48,3 +48,10 @@ class Player:
                 closest_dist = dist
                 closest_coin = coin
         return closest_coin
+    
+    def all_coins_collected(self) -> bool:
+        return len(self.maze.coin_list) == 0
+    
+    def touching_coin(self) -> None:
+        if self.maze[self.x][self.y].state == CellState.COIN:
+            self.maze.delete_coin(self.x, self.y)

@@ -160,6 +160,12 @@ class Maze:
                     if (x == pos[0] and y == pos[1]):
                         self.maze_mtx[x][y].state = CellState.COIN
                         self.coin_list.append(self.maze_mtx[x][y])
+
+    def delete_coin(self, x, y) -> None:
+        coin_cell = self.maze_mtx[x][y]
+        coin_cell.state = CellState.PASSAGE
+        if coin_cell in self.coin_list:
+            self.coin_list.remove(coin_cell)
     
     def __str__(self) -> str:
         return '\n'.join(' '.join(str(cell.state.value) for cell in row) for row in self.maze_mtx)
