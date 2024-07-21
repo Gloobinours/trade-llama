@@ -35,6 +35,7 @@ class Maze:
         """
         self.size: int = size
         self.grid = [[Cell(x, y) for y in range(size)] for x in range(size)]
+        self.generate_grid()
 
         self.coin_amount: int = coin_amount
         self.coin_list = []
@@ -65,13 +66,13 @@ class Maze:
 
         return neighbors
 
-    def generate_maze_matrix(self) -> list:
+    def generate_grid(self) -> list:
         """Generate a square matrix
 
         Returns:
             np.matrix: _description_
         """
-        maze = self.generate_matrix()
+        maze = self.grid
         # Choose the initial cell, mark it as visited and push it to the stack
         # random_row: int = random.randint(0, len(maze) - 1)
         # random_col: int = random.randint(0, len(maze[random_row]) - 1)
