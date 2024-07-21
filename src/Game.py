@@ -32,6 +32,11 @@ class GameLoop:
             print(self.maze)
             print(f'move player to: ({self.player.x}, {self.player.y})')
 
+            self.player.all_coins_collected()
+            self.player.touching_coin()
+            self.player.touching_bomb()
+
+
 if __name__ == '__main__':
     maze: Maze = Maze(31, 1, 2)
     player: Player = Player(0, 0, maze)
