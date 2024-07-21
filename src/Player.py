@@ -55,3 +55,7 @@ class Player:
     def touching_coin(self) -> None:
         if self.maze[self.x][self.y].state == CellState.COIN:
             self.maze.delete_coin(self.x, self.y)
+
+    def touching_bomb(self) -> None:
+        if self.maze[self.x][self.y].state == CellState.BOMB:
+            self.maze.explode_bomb(self.x, self.y)
