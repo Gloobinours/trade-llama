@@ -28,6 +28,8 @@ function drawMaze(mazeArray) {
     const wallColor = '#333'; // Color for walls
     const pathColor = '#fff'; // Color for paths
     const coinColor = '#aa0'
+    const bombColor = '#a33'
+    const playerColor = '#33a'
 
     // Get the canvas element and its context
     const canvas = document.getElementById('mazeCanvas');
@@ -53,9 +55,17 @@ function drawMaze(mazeArray) {
                 // Draw path
                 ctx.fillStyle = pathColor;
                 ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
-            } else {
+            } else if(mazeArray[y][x] === 2){
                 // Draw path
                 ctx.fillStyle = coinColor;
+                ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
+            } else if(mazeArray[y][x] === 3){
+                // Draw bomb
+                ctx.fillStyle = bombColor;
+                ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
+            } else if(mazeArray[y][x] === 4){
+                // Draw player
+                ctx.fillStyle = playerColor;
                 ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
             }
         }
