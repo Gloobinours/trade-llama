@@ -7,6 +7,7 @@ class ActionState(Enum):
     RIGHT = 1
     DOWN = 2
     LEFT = 3
+    BOMB = 4
 
 class GameLoop:
     def __init__(self, player: Player, maze: Maze) -> None:
@@ -27,6 +28,8 @@ class GameLoop:
                     self.player.move_down()
                 case action if action in [ActionState.LEFT.value, 'LEFT']:
                     self.player.move_left()
+                case action if action in [ActionState.BOMB.value, 'BOMB']:
+                    self.player.use_bomb()
                 case _:
                     print('Invalid action')
             print(self.maze)
@@ -34,11 +37,10 @@ class GameLoop:
 
             self.player.all_coins_collected()
             self.player.touching_coin()
-            self.player.touching_bomb()
 
 
 if __name__ == '__main__':
-    maze: Maze = Maze(31, 1, 2)
+    maze: Maze = Maze(31, 1)
     player: Player = Player(0, 0, maze)
     gameloop: GameLoop = GameLoop(player, maze)
     gameloop.loop()
