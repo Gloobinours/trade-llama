@@ -32,17 +32,16 @@ class GameLoop:
             self.draw_maze()
             action = input("take action $> ").upper()
 
-            match action:
-                case action if action in [ActionState.UP.value, 'UP']:
-                    self.player.move_up()
-                case action if action in [ActionState.RIGHT.value, 'RIGHT']:
-                    self.player.move_right()
-                case action if action in [ActionState.DOWN.value, 'DOWN']:
-                    self.player.move_down()
-                case action if action in [ActionState.LEFT.value, 'LEFT']:
-                    self.player.move_left()
-                case _:
-                    print('Invalid action')
+            if action =='UP':
+                self.player.move_up()
+            elif action == 'RIGHT':
+                self.player.move_right()
+            elif action =='DOWN':
+                self.player.move_down()
+            elif action =='LEFT':
+                self.player.move_left()
+            else:
+                print('Invalid action')
             print(f'move player to: ({self.player.x}, {self.player.y})')
 
             self.player.all_coins_collected()
