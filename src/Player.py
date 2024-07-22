@@ -4,8 +4,8 @@ import math
 class Player:
 
     def __init__(self, x: int, y: int, maze: Maze) -> None:
-        self.x: int = 0
-        self.y: int = 0
+        self.x: int = x
+        self.y: int = y
         self.maze: Maze = maze
 
     def is_walkable(self, x: int, y: int) -> bool:
