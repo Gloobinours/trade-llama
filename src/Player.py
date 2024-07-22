@@ -19,10 +19,15 @@ class Player:
             bool: False if the cell is not walkable (wall or out of bounds),
                 True if the cell is walkable (passage or coin)
         """
-        if (x < 0 or x >= self.maze.size): return False
-        if (y < 0 or y >= self.maze.size): return False
+        if (x < 0 or x >= self.maze.size): 
+            print(f"Out of bounds: ({x}, {y})")
+            return False
+        if (y < 0 or y >= self.maze.size): 
+            print(f"Out of bounds: ({x}, {y})")
+            return False
         
         if self.maze.grid[x][y].state == CellState.WALL:
+            print(f"Wall at: ({x}, {y})")
             return False
         
         # The cell is walkable
@@ -35,11 +40,11 @@ class Player:
         if (self.is_walkable(self.x+1, self.y)):
             self.x += 1
     def move_up(self):
-        if (self.is_walkable(self.x, self.y+1)):
-            self.y += 1
-    def move_down(self):
         if (self.is_walkable(self.x, self.y-1)):
             self.y -= 1
+    def move_down(self):
+        if (self.is_walkable(self.x, self.y+1)):
+            self.y += 1
 
     def get_nearest_coin(self) -> Cell:
         closest_dist = -1
