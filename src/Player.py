@@ -19,21 +19,22 @@ class Player:
             False if not walkable (wall or out of bounds)
             True if walkable (passage or coin)
         """
-        if (x < 0 or x >= self.maze.size-1): return False
+        if (x < 0 or x > self.maze.size): return False
+        if (y < 0 or y > self.maze.size): return False
         if (self.maze.grid[x][y].state == CellState.WALL): return False
         return True
 
     def move_left(self):
-        if (self.is_walkable(self.x-1, self.y) == False): return
+        if (self.is_walkable(self.x-1, self.y)): return
         self.x -= 1
     def move_right(self):
-        if (self.is_walkable(self.x+1, self.y) == False): return
+        if (self.is_walkable(self.x+1, self.y)): return
         self.x += 1
     def move_up(self):
-        if (self.is_walkable(self.x, self.y+1) == False): return
+        if (self.is_walkable(self.x, self.y+1)): return
         self.y += 1
     def move_down(self):
-        if (self.is_walkable(self.x, self.y-1) == False): return
+        if (self.is_walkable(self.x, self.y-1)): return
         self.x -= 1
 
     def get_nearest_coin(self) -> Cell:
@@ -53,9 +54,9 @@ class Player:
         return len(self.maze.coin_list) == 0
     
     def touching_coin(self) -> None:
-        if self.maze[self.x][self.y].state == CellState.COIN:
+        if self.maze.grid[self.x][self.y].state == CellState.COIN:
             self.maze.delete_coin(self.x, self.y)
 
     def touching_bomb(self) -> None:
-        if self.maze[self.x][self.y].state == CellState.BOMB:
+        if self.maze.grid[self.x][self.y].state == CellState.BOMB:
             self.maze.explode_bomb(self.x, self.y)
