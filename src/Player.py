@@ -4,6 +4,13 @@ import math
 class Player:
 
     def __init__(self, x: int, y: int, maze: Maze) -> None:
+        """Constructor for Player
+
+        Args:
+            x (int): x coordinate of the player
+            y (int): y coordinate of the player
+            maze (Maze): the maze the player is playing on
+        """
         self.x: int = x
         self.y: int = y
         self.maze: Maze = maze
@@ -33,20 +40,33 @@ class Player:
         # The cell is walkable
         return True
 
-    def move_left(self):
+    def move_left(self) -> None:
+        """Move player left
+        """
         if (self.is_walkable(self.x, self.y-1)):
             self.y -= 1
-    def move_right(self):
+    def move_right(self) -> None:
+        """Move player right
+        """
         if (self.is_walkable(self.x, self.y+1)):
             self.y += 1
-    def move_up(self):
+    def move_up(self) -> None:
+        """Move player up
+        """
         if (self.is_walkable(self.x-1, self.y)):
             self.x -= 1
-    def move_down(self):
+    def move_down(self) -> None:
+        """Move player down
+        """
         if (self.is_walkable(self.x+1, self.y)):
             self.x += 1
 
     def get_nearest_coin(self) -> Cell:
+        """Get the position of the closest coin from player
+
+        Returns:
+            Cell: closest coin from player
+        """
         closest_dist = -1
         for coin in self.maze.coin_list:
             dist = math.dist([self.x, self.y], [coin.x, coin.y])
@@ -60,8 +80,20 @@ class Player:
         return closest_coin
     
     def all_coins_collected(self) -> bool:
+        """Check if all the coins are collected by the player
+
+        Returns:
+            bool: True if all coins are collected
+        """
         return len(self.maze.coin_list) == 0
     
     def touching_coin(self) -> None:
+        """Delete a coin when the player touches it
+        """
         if self.maze.grid[self.x][self.y].state == CellState.COIN:
             self.maze.delete_coin(self.x, self.y)
+    
+    def use_bomb(self):
+        """Use bomb to break walls
+        """
+        self.maze.explode_bomb(self.x, self.y)

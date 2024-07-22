@@ -4,10 +4,18 @@ from Maze import Maze
 
 class GameLoop:
     def __init__(self, player: Player, maze: Maze) -> None:
+        """Constructor for GameLoop
+
+        Args:
+            player (Player): player playing the game
+            maze (Maze): maze generated for the game
+        """
         self.player: Player = player
         self.maze: Maze = maze
     
-    def draw_maze(self):
+    def draw_maze(self) -> None:
+        """Draws the player on the maze
+        """
         new_maze = []
         for x in range(self.maze.size):
             row = []
@@ -21,7 +29,9 @@ class GameLoop:
         for row in new_maze:
             print(' '.join(row))
 
-    def loop(self):
+    def loop(self) -> None:
+        """Main game loop function
+        """
         while True:
             self.draw_maze()
             action = input("take action $> ").upper()
@@ -34,6 +44,8 @@ class GameLoop:
                 self.player.move_down()
             elif action =='LEFT':
                 self.player.move_left()
+            elif action =='BOMB':
+                self.player.use_bomb()
             else:
                 print('Invalid action')
             print(f'move player to: ({self.player.x}, {self.player.y})')
@@ -46,7 +58,7 @@ class GameLoop:
 
 
 if __name__ == '__main__':
-    maze: Maze = Maze(21, 1)
+    maze: Maze = Maze(9, 1)
     player: Player = Player(0, 0, maze)
     gameloop: GameLoop = GameLoop(player, maze)
     gameloop.loop()
