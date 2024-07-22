@@ -19,10 +19,10 @@ class Player:
             bool: False if the cell is not walkable (wall or out of bounds),
                 True if the cell is walkable (passage or coin)
         """
-        if (x < 0 or x >= self.maze.size): 
+        if (y < 0 or y >= self.maze.size): 
             print(f"Out of bounds: ({x}, {y})")
             return False
-        if (y < 0 or y >= self.maze.size): 
+        if (x < 0 or x >= self.maze.size): 
             print(f"Out of bounds: ({x}, {y})")
             return False
         
