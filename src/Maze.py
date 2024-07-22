@@ -8,14 +8,15 @@ class CellState(Enum):
 
 class Cell:
     def __init__(self, x: int, y: int) -> None:
+        """Cell Constructor
+
+        Args:
+            x (int): x coordinaate
+            y (int): y coordinate
+        """
         self.x: int = x
         self.y: int = y
         self.state: CellState = CellState.WALL
-
-    def change_state_to_wall(self):
-        self.state = CellState.WALL
-    def change_state_to_coin(self):
-        self.state = CellState.COIN
 
     def __eq__(self, other) -> bool:
         return self.x == other.x and self.y == other.y
