@@ -24,16 +24,16 @@ class Player:
         return True
 
     def move_left(self):
-        if (is_walkable(self.x-1, self.y) == False): return
+        if (self.is_walkable(self.x-1, self.y) == False): return
         self.x -= 1
     def move_right(self):
-        if (is_walkable(self.x+1, self.y) == False): return
+        if (self.is_walkable(self.x+1, self.y) == False): return
         self.x += 1
     def move_up(self):
-        if (is_walkable(self.x, self.y+1) == False): return
+        if (self.is_walkable(self.x, self.y+1) == False): return
         self.y += 1
     def move_down(self):
-        if (is_walkable(self.x, self.y-1) == False): return
+        if (self.is_walkable(self.x, self.y-1) == False): return
         self.x -= 1
 
     def get_nearest_coin(self) -> Cell:
@@ -48,3 +48,14 @@ class Player:
                 closest_dist = dist
                 closest_coin = coin
         return closest_coin
+    
+    def all_coins_collected(self) -> bool:
+        return len(self.maze.coin_list) == 0
+    
+    def touching_coin(self) -> None:
+        if self.maze[self.x][self.y].state == CellState.COIN:
+            self.maze.delete_coin(self.x, self.y)
+
+    def touching_bomb(self) -> None:
+        if self.maze[self.x][self.y].state == CellState.BOMB:
+            self.maze.explode_bomb(self.x, self.y)
