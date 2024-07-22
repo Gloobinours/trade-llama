@@ -34,17 +34,17 @@ class Player:
         return True
 
     def move_left(self):
-        if (self.is_walkable(self.x-1, self.y)):
-            self.x -= 1
-    def move_right(self):
-        if (self.is_walkable(self.x+1, self.y)):
-            self.x += 1
-    def move_up(self):
         if (self.is_walkable(self.x, self.y-1)):
             self.y -= 1
-    def move_down(self):
+    def move_right(self):
         if (self.is_walkable(self.x, self.y+1)):
             self.y += 1
+    def move_up(self):
+        if (self.is_walkable(self.x-1, self.y)):
+            self.x -= 1
+    def move_down(self):
+        if (self.is_walkable(self.x+1, self.y)):
+            self.x += 1
 
     def get_nearest_coin(self) -> Cell:
         closest_dist = -1

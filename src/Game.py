@@ -46,7 +46,7 @@ class GameLoop:
 
 
 if __name__ == '__main__':
-    maze: Maze = Maze(31, 1)
+    maze: Maze = Maze(21, 1)
     player: Player = Player(0, 0, maze)
     gameloop: GameLoop = GameLoop(player, maze)
     gameloop.loop()
