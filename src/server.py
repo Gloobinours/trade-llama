@@ -12,5 +12,3 @@ api.add_resource(MazeEndpoint, '/maze/<int:maze_size>')
 
 if __name__ == "__name__":
     app.run(debug=True)
-    create_game_loop()
-    game_loop_instance.loop() 
