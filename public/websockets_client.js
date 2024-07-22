@@ -5,7 +5,7 @@ const socket = new WebSocket('ws://127.0.0.1:5005');
 socket.onopen = function(event) {
     console.log('WebSocket connected');
     // Send a message to the server
-    socket.send('asdasd');
+    socket.send('Connected');
 };
 
 // Event listener for incoming messages
