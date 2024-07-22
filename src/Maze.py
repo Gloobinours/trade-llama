@@ -5,7 +5,6 @@ class CellState(Enum):
     PASSAGE = 0
     WALL = 1
     COIN = 2
-    BOMB = 3
 
 class Cell:
     def __init__(self, x: int, y: int) -> None:
@@ -25,7 +24,7 @@ class Cell:
 
 
 class Maze:
-    def __init__(self, size: int, coin_amount : int, bomb_amount : int) -> None:
+    def __init__(self, size: int, coin_amount : int) -> None:
         """Constructor for Maze
 
         Args:
