@@ -165,7 +165,6 @@ class Maze:
                     if self.grid[i][j].state == CellState.WALL:
                         self.grid[i][j].state = CellState.PASSAGE
 
-
     def delete_coin(self, x, y) -> None:
         """Delete coin when player touches it
 
