@@ -35,7 +35,7 @@ class Player:
         self.y += 1
     def move_down(self):
         if (self.is_walkable(self.x, self.y-1)): return
-        self.x -= 1
+        self.y -= 1
 
     def get_nearest_coin(self) -> Cell:
         closest_dist = -1
@@ -56,7 +56,3 @@ class Player:
     def touching_coin(self) -> None:
         if self.maze.grid[self.x][self.y].state == CellState.COIN:
             self.maze.delete_coin(self.x, self.y)
-
-    def touching_bomb(self) -> None:
-        if self.maze.grid[self.x][self.y].state == CellState.BOMB:
-            self.maze.explode_bomb(self.x, self.y)
