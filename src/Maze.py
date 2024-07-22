@@ -158,11 +158,13 @@ class Maze:
         Args:
             x, y (int): cell coordinates of player
         """
-        directions = [(x-1,y-1),(x-1,y),(x-1,y+1),(x,y-1),(x,y+1),(x+1,y-1),(x+1,y),(x+1,y+1)]
+        
+        for i in range(x-1,x+2):
+            for j in range(y-1,y+2):
+                if (i >= 0 or j >= 0) and (i <= self.size or j <= self.size):
+                    if self.grid[i][j].state == CellState.WALL:
+                        self.grid[i][j].state = CellState.PASSAGE
 
-        for i in directions:
-            if self.grid[i[0]][i[1]].state == CellState.WALL:
-                self.grid[i[0]][i[1]].state = CellState.PASSAGE
 
     def delete_coin(self, x, y) -> None:
         """Delete coin when player touches it
