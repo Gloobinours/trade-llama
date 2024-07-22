@@ -38,8 +38,11 @@ class GameLoop:
                 print('Invalid action')
             print(f'move player to: ({self.player.x}, {self.player.y})')
 
-            self.player.all_coins_collected()
             self.player.touching_coin()
+
+            if self.player.all_coins_collected():
+                print("All coins collected")
+                break
 
 
 if __name__ == '__main__':
