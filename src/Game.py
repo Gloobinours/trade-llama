@@ -13,9 +13,23 @@ class GameLoop:
         self.player: Player = player
         self.maze: Maze = maze
     
+    def draw_maze(self):
+        new_maze = []
+        for x in range(self.maze.size):
+            row = []
+            for y in range(self.maze.size):
+                if x == self.player.x and y == self.player.y:
+                    row.append('#')
+                else:
+                    row.append(str(self.maze.grid[x][y].state.value))
+            new_maze.append(row)
+        
+        for row in new_maze:
+            print(' '.join(row))
+
     def loop(self):
         while True:
-            print(maze)
+            self.draw_maze()
             action = input("take action $> ").upper()
 
             match action:
@@ -29,7 +43,6 @@ class GameLoop:
                     self.player.move_left()
                 case _:
                     print('Invalid action')
-            print(self.maze)
             print(f'move player to: ({self.player.x}, {self.player.y})')
 
             self.player.all_coins_collected()
