@@ -40,10 +40,6 @@ class Maze:
         self.coin_amount: int = coin_amount
         self.coin_list = []
         self.add_coin_to_maze(coin_amount)
-        
-        self.bomb_amount: int = bomb_amount
-        self.bomb_locations = []
-        self.generate_bombs(bomb_amount)
 
     def get_neighbors(self, cell: Cell, matrix) -> None:
         """_summary_
@@ -159,25 +155,6 @@ class Maze:
                     if (x == pos[0] and y == pos[1]):
                         self.grid[x][y].state = CellState.COIN
                         self.coin_list.append(self.grid[x][y])
-
-    def generate_bombs(self, bomb_amount) -> None:
-        """Place bombs randomly
-        Args:
-            bomb_amount (int): number of bombs
-        """
-        bombspot = []
-
-        while len(bombspot) < (bomb_amount):
-            # generate random coordinates
-            x_coord = random.randint(0, self.size-1)
-            y_coord = random.randint(0, self.size-1)
-            random_cell = self.grid[x_coord][y_coord]
-
-            # check if passage, append coord
-            if random_cell.state == CellState.PASSAGE and random_cell not in bombspot:
-                bombspot.append(self.grid[x_coord][y_coord])
-                random_cell.state = CellState.BOMB
-        self.bomb_locations = bombspot
 
     def explode_bomb(self, x, y) -> None:
         """Break walls around bomb when touched

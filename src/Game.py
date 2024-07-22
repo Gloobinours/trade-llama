@@ -2,12 +2,6 @@ from enum import Enum
 from Player import Player
 from Maze import Maze
 
-class ActionState(Enum):
-    UP = 0
-    RIGHT = 1
-    DOWN = 2
-    LEFT = 3
-
 class GameLoop:
     def __init__(self, player: Player, maze: Maze) -> None:
         self.player: Player = player
@@ -46,11 +40,10 @@ class GameLoop:
 
             self.player.all_coins_collected()
             self.player.touching_coin()
-            self.player.touching_bomb()
 
 
 if __name__ == '__main__':
-    maze: Maze = Maze(31, 1, 2)
+    maze: Maze = Maze(31, 1)
     player: Player = Player(0, 0, maze)
     gameloop: GameLoop = GameLoop(player, maze)
     gameloop.loop()
