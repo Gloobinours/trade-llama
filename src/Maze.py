@@ -173,4 +173,4 @@ class Maze:
             self.coin_list.remove(coin_cell)
     
     def __str__(self) -> str:
-        return '\n'.join(' '.join(str(cell.state.value) for cell in row) for row in self.grid)
+        return '\n'.join(' '.join(str(cell) for cell in row) for row in self.grid)
