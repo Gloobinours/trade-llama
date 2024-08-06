@@ -37,7 +37,7 @@ class ReplayMemory(object):
     def __len__(self):
         return len(self.memory)
     
-class DeepQNetwork(nn.module):
+class DeepQNetwork(nn.Module):
     def __init__(self, n_observations, n_actions):
         super(DeepQNetwork, self).__init__()
         self.layer1 = nn.Linear(n_observations, 64)
