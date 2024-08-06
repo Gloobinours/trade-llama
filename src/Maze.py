@@ -165,6 +165,23 @@ class Maze:
                     if self.grid[i][j].state == CellState.WALL:
                         self.grid[i][j].state = CellState.PASSAGE
 
+    def generate_fog(self, x: int, y: int, size: int):
+        """Generate the fog of war of the maze
+
+        Args:
+            x (int): X-Coordinate of the player's position
+            y (int): Y-Coordinate of the player's position
+            size (int): Size of the visible area around the player
+
+        Returns:
+            list[Cell]: Clear area around the player of certain size 
+        """
+        res = []
+        for i in range(x - size, x + size + 1):
+            for j in range(y - size, y + size + 1):
+                if (i >= 0 and j >= 0) and (i <= self.size and j <= self.size):
+                    res.append(self.grid[i][j])
+        return res
 
     def delete_coin(self, x, y) -> None:
         """Delete coin when player touches it
