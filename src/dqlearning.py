@@ -1,14 +1,13 @@
 from collections import deque, namedtuple
+from itertools import count
 import math
 import random
 import matplotlib
 import matplotlib.pyplot as plt
-
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-
 from Game import GameLoop
 import Maze
 from Player import Player
@@ -83,7 +82,7 @@ TAU = 0.005 # the update rate of the target network
 LR = 1e-4 # the learning rate of the ``AdamW`` optimizer
 
 # Init the game
-maze: Maze = Maze.Maze(15, 1)
+maze: Maze = Maze.Maze(15, 1, a_seed= 10)
 player: Player = Player(0, 0, maze)
 gameloop: GameLoop = GameLoop(player, maze)
 fog_size = 2
@@ -150,6 +149,14 @@ def plot_durations(show_result=False):
         means = durations_t.unfold(0, 100, 1).mean(1).view(-1)
         means = torch.cat((torch.zeros(99), means))
         plt.plot(means.numpy())
+    
+    plt.pause(0.001)  # pause a bit so that plots are updated
+    if is_ipython:
+        if not show_result:
+            display.display(plt.gcf())
+            display.clear_output(wait=True)
+        else:
+            display.display(plt.gcf())
 
 def optimize_model():
     if len(memory) < BATCH_SIZE:
@@ -204,11 +211,11 @@ else:
 
 for i_episode in range(num_episodes):
     # Initialize the environment and get its state
-    state = env.reset()
+    state = gameloop.reset()
     state = torch.tensor(state, dtype=torch.float32, device=device).unsqueeze(0)
     for t in count():
         action = select_action(state)
-        observation, reward, terminated, truncated, _ = env.step(action.item())
+        observation, reward, terminated, truncated, _ = gameloop.step(action.item())
         reward = torch.tensor([reward], device=device)
         done = terminated or truncated
 
@@ -243,10 +250,3 @@ print('Complete')
 plot_durations(show_result=True)
 plt.ioff()
 plt.show()
-plt.pause(0.001)  # pause a bit so that plots are updated
-if is_ipython:
-    if not show_result:
-        display.display(plt.gcf())
-        display.clear_output(wait=True)
-    else:
-        display.display(plt.gcf())

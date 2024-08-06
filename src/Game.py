@@ -12,6 +12,9 @@ class GameLoop:
         """
         self.player: Player = player
         self.maze: Maze = maze
+        self.action: str = None
+        self.is_step_called: bool = False
+        self.has_ended: bool = False
     
     def draw_maze(self) -> None:
         """Draws the player on the maze
@@ -34,17 +37,16 @@ class GameLoop:
         """
         while True:
             self.draw_maze()
-            action = input("take action $> ").upper()
 
-            if action =='UP':
+            if self.action =='UP':
                 self.player.move_up()
-            elif action == 'RIGHT':
+            elif self.action == 'RIGHT':
                 self.player.move_right()
-            elif action =='DOWN':
+            elif self.action =='DOWN':
                 self.player.move_down()
-            elif action =='LEFT':
+            elif self.action =='LEFT':
                 self.player.move_left()
-            elif action =='BOMB':
+            elif self.action =='BOMB':
                 self.player.use_bomb()
             else:
                 print('Invalid action')
@@ -54,4 +56,33 @@ class GameLoop:
 
             if self.player.all_coins_collected():
                 print("All coins collected")
+                self.has_ended = True
                 break
+            
+            while True:
+                if self.is_step_called == True:
+                    self.is_step_called = False
+                    break
+                
+    def reset(self, seed):
+        self.maze = Maze(self.maze.size, self.maze.coin_amount, seed)
+        state = {
+            'player_position' : (self.player.x, self.player.y),
+            'player_vision' : self.maze.generate_fog(self.player.x, self.player.y, self.fog_size),
+            'all_coins_collected' : self.player.all_coins_collected(),
+            'nearest_coin' : self.player.get_nearest_coin()
+            }
+        return state
+    
+    def step(self, action):
+        self.is_step_called = True
+        self.action = action
+        state = {
+            'player_position' : (self.player.x, self.player.y),
+            'player_vision' : self.maze.generate_fog(self.player.x, self.player.y, self.fog_size),
+            'all_coins_collected' : self.player.all_coins_collected(),
+            'nearest_coin' : self.player.get_nearest_coin()
+            }
+        ### None is placeholder
+        return(state, None, self.has_ended, None)
+        
