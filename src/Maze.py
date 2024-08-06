@@ -30,7 +30,7 @@ class Cell:
 
 
 class Maze:
-    def __init__(self, size: int, coin_amount : int) -> None:
+    def __init__(self, size: int, coin_amount : int, a_seed : int = None) -> None:
         """Constructor for Maze
 
         Args:
@@ -38,6 +38,7 @@ class Maze:
             coin_amount (int): The number of coins to place in the maze
         """
         self.size: int = size
+        if a_seed: random.seed(a_seed)
         self.grid = [[Cell(x, y) for y in range(size)] for x in range(size)]
         self.generate_grid()
 
