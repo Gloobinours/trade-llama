@@ -1,11 +1,12 @@
-# Trade Llama
+# Maze AI
 
-An event-driven-trading bot using sentiment analysis with [ollama](https://github.com/ollama/ollama) and [vllm](https://github.com/vllm-project/vllm)
+A maze-solving AI
 
 ## Team
 
 - [Gloobinours](https://github.com/Gloobinours)
 - [Jhailos](https://github.com/Jhailos)
+- [AntimatterSushi](https://github.com/AntimatterSushi)
 
 ## How to use
 
