@@ -186,7 +186,7 @@ player: Player = Player(0, 0, maze)
 fog_size = 2
 gameloop: GameLoop = GameLoop(player, maze, fog_size = fog_size)
 
-actions = [Action.UP, Action.RIGHT, Action.DOWN, Action.LEFT, Action.BOMB]
+actions = [Action.UP, Action.RIGHT, Action.DOWN, Action.LEFT]
 
 agent = DQNAgent(BATCH_SIZE, GAMMA, EPS_START, EPS_END, EPS_DECAY, TAU, LR)
 
@@ -236,9 +236,9 @@ for i_episode in range(num_episodes):
 
     t = 0
     # Agent naviguates the maze until truncated or terminated
-    while (not terminated and not truncated):
+    for _ in range(500):
 
-        print(" Step: ", step_count)
+        # print(" Step: ", step_count)
         # Select action using Epsilon-Greedy Algorithm
         action = agent.select_action(state)
 
@@ -268,7 +268,7 @@ for i_episode in range(num_episodes):
         target_net_state_dict = agent.target_net.state_dict()
         policy_net_state_dict = agent.policy_net.state_dict()
         for key in policy_net_state_dict:
-            target_net_state_dict[key] = policy_net_state_dict[key]*TAU + target_net_state_dict[key]*(1-TAU)
+            target_net_state_dict[key] = policy_net_state_dict[key]*agent.tau + target_net_state_dict[key]*(1-agent.tau)
         agent.target_net.load_state_dict(target_net_state_dict)
 
         if done:
@@ -278,7 +278,7 @@ for i_episode in range(num_episodes):
         
         # Increment step count
         step_count += 1
-    print(f'Episode: {i_episode}, Total reward: {reward}, Epsilon {agent.eps_start}')
+    print(f'Episode: {i_episode}, Total reward: {total_reward}, Epsilon {agent.eps_start}')
 
 print('Complete')
 plot_durations(show_result=True)

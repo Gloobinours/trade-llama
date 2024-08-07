@@ -4,11 +4,11 @@ from Player import Player
 from Maze import Maze
 
 class Action(Enum):
-    BOMB = 0
-    UP = 1
-    RIGHT = 2
-    DOWN = 3
-    LEFT = 4
+    UP = 0
+    RIGHT = 1
+    DOWN = 2
+    LEFT = 3
+    # BOMB = 4
 
 class GameLoop:
     def __init__(self, player: Player, maze: Maze, fog_size: int = 1) -> None:
@@ -44,38 +44,49 @@ class GameLoop:
         Args:
             action (_type_): _description_
         """
-        self.draw_maze()
+        # self.draw_maze()
+        # print('<------------------------------------>')
 
         reward = 0
         is_done = False
 
+        # print("Action: ", action, ", ", Action(action).name)
         if (action == Action.UP) or (action == Action.UP.value):
             if self.player.move_up() == False:
-                reward -= 5
+                reward -= 1
+            else:
+                reward += 1
         elif (action == Action.RIGHT) or (action == Action.RIGHT.value):
             if self.player.move_right() == False:
-                reward -= 5
+                reward -= 1
         elif (action == Action.DOWN) or (action == Action.DOWN.value):
             if self.player.move_down() == False:
-                reward -= 5
+                reward -= 1
+            else:
+                reward += 1
         elif (action == Action.LEFT) or (action == Action.LEFT.value):
             if self.player.move_left() == False:
-                reward -= 5
-        elif (action == Action.BOMB) or (action == Action.BOMB.value):
-            self.player.use_bomb
-        else:
-            print('Invalid action')
-        print(f'move player to: ({self.player.x}, {self.player.y})')
+                reward -= 1
+            else:
+                reward += 1
+        # elif (action == Action.BOMB) or (action == Action.BOMB.value):
+        #     self.player.use_bomb
+        # else:
+        #     print('Invalid action')
+        # print(f'move player to: ({self.player.x}, {self.player.y})')
 
+        reward -= 0.1
 
         if self.player.touching_coin() == True:
-            self.reward += 10
-        print(self.maze.coin_list, ", Amount: ", self.maze.coin_amount)
+            self.reward += 20
+        # print([str(c) for c in self.maze.coin_list], ", Amount: ", self.maze.coin_amount)
 
         if self.player.all_coins_collected():
             print("All coins collected")
             reward += 50
             is_done = True
+
+        # print('Reward: ', reward)
 
         self.state = self.get_state()
         return self.state, reward, is_done
