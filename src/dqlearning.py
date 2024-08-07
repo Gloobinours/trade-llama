@@ -73,6 +73,105 @@ class DeepQNetwork(nn.Module):
         x = F.relu(self.layer2(x))
         return self.layer3(x)
 
+
+class DQNAgent:
+    def __init__(self, batch_size, gamma, eps_start, eps_end, eps_decay, tau, learning_rate) -> None:
+        self.batch_size = batch_size
+        self.gamma = gamma
+        self.eps_start = eps_start
+        self.eps_end =eps_end
+        self.eps_decay = eps_decay
+        self.tau = tau
+        self.learning_rate = learning_rate
+        self.policy_net = DeepQNetwork(self.get_n_observations(2), self.get_n_actions()).to(device)
+        self.target_net = DeepQNetwork(self.get_n_observations(2), self.get_n_actions()).to(device)
+        self.update_target_network()
+        self.optimizer = optim.AdamW(self.policy_net.parameters(), lr=LR, amsgrad=True)
+        self.memory = ReplayMemory(10000)
+        self.steps_done = 0
+    
+    def update_target_network(self):
+        """Step 2: Makes policy and target network the same
+        """
+        self.target_net.load_state_dict(self.policy_net.state_dict())
+
+    def get_n_observations(self, fog_size):
+        player_position_features = 2
+        all_coins_collected_features = 1
+        nearest_coin_features = 2
+        player_vision_features = 8*2 if fog_size == 1 else ((fog_size**2+1)**2)*2
+        return (player_position_features + player_vision_features + all_coins_collected_features + nearest_coin_features)
+
+    def get_n_actions(self):
+        return len(Action)
+    
+    def select_action(self, state):
+        """Select action using Epsilon-Greedy algorithm
+
+        Args:
+            state (_type_): _description_
+
+        Returns:
+            torch.tensor: _description_
+        """
+        eps_threshold = self.eps_end + (self.eps_start - self.eps_end) * \
+            math.exp(-1. * self.steps_done / self.eps_decay)
+        self.steps_done += 1
+        if random.random() > eps_threshold:
+            # Select best action
+            with torch.no_grad():
+                return self.policy_net(state).max(1).indices.view(1, 1)
+        else:
+            # Select random action
+            return torch.tensor([[random.choice(actions).value]], device=device, dtype=torch.long)
+        
+    def optimize_model(self):
+        if len(self.memory) < self.batch_size:
+            return
+        transitions = self.memory.sample(self.batch_size)
+        # Transpose the batch (see https://stackoverflow.com/a/19343/3343043 for
+        # detailed explanation). This converts batch-array of Transitions
+        # to Transition of batch-arrays.
+        batch = Transition(*zip(*transitions))
+
+        # Compute a mask of non-final states and concatenate the batch elements
+        # (a final state would've been the one after which simulation ended)
+        non_final_mask = torch.tensor(tuple(map(lambda s: s is not None,
+                                            batch.next_state)), device=device, dtype=torch.bool)
+        non_final_next_states = torch.cat([s for s in batch.next_state
+                                                    if s is not None])
+        state_batch = torch.cat(batch.state)
+        action_batch = torch.cat(batch.action)
+        reward_batch = torch.cat(batch.reward)
+
+        # Compute Q(s_t, a) - the model computes Q(s_t), then we select the
+        # columns of actions taken. These are the actions which would've been taken
+        # for each batch state according to policy_net
+        state_action_values = self.policy_net(state_batch).gather(1, action_batch)
+
+        # Compute V(s_{t+1}) for all next states.
+        # Expected values of actions for non_final_next_states are computed based
+        # on the "older" target_net; selecting their best reward with max(1).values
+        # This is merged based on the mask, such that we'll have either the expected
+        # state value or 0 in case the state was final.
+        next_state_values = torch.zeros(self.batch_size, device=device)
+        with torch.no_grad():
+            next_state_values[non_final_mask] = self.target_net(non_final_next_states).max(1).values
+        # Compute the expected Q values
+        expected_state_action_values = (next_state_values * GAMMA) + reward_batch
+
+        # Compute Huber loss
+        criterion = nn.SmoothL1Loss()
+        loss = criterion(state_action_values, expected_state_action_values.unsqueeze(1))
+
+        # Optimize the model
+        self.optimizer.zero_grad()
+        loss.backward()
+        # In-place gradient clipping
+        torch.nn.utils.clip_grad_value_(self.policy_net.parameters(), 100)
+        self.optimizer.step()
+    
+
 BATCH_SIZE = 128 # the number of transitions sampled from the replay buffer
 GAMMA = 0.99 # discount factor
 EPS_START = 0.9 # the starting value of epsilon
@@ -81,7 +180,7 @@ EPS_DECAY = 1000 # controls the rate of exponential decay of epsilon, higher mea
 TAU = 0.005 # the update rate of the target network
 LR = 1e-4 # the learning rate of the ``AdamW`` optimizer
 
-# Init the game
+# Init the game - TRAINING AGENT
 maze: Maze = Maze.Maze(15, 1, a_seed= 10)
 player: Player = Player(0, 0, maze)
 fog_size = 2
@@ -89,48 +188,10 @@ gameloop: GameLoop = GameLoop(player, maze, fog_size = fog_size)
 
 actions = [Action.UP, Action.RIGHT, Action.DOWN, Action.LEFT, Action.BOMB]
 
-n_actions = len(actions) # number of actions (TOP,RIGHT,DOWN,LEFT,BOMB)
-state = {
-    'player_position' : (player.x, player.y),
-    'player_vision' : maze.generate_fog(player.x, player.y, fog_size),
-    'all_coins_collected' : player.all_coins_collected(),
-    'nearest_coin' : player.get_nearest_coin()
-}
-
-player_position_features = 2
-all_coins_collected_features = 1
-nearest_coin_features = 2
-player_vision_features = 8*2 if fog_size == 1 else ((fog_size**2+1)**2)*2
-
-# Number of observations
-n_observations = (player_position_features + player_vision_features + all_coins_collected_features + nearest_coin_features)
-
-policy_net = DeepQNetwork(n_observations, n_actions).to(device)
-target_net = DeepQNetwork(n_observations, n_actions).to(device)
-
-# Step 2: Makes target and policy network the same
-target_net.load_state_dict(policy_net.state_dict())
-
-optimizer = optim.AdamW(policy_net.parameters(), lr=LR, amsgrad=True)
-memory = ReplayMemory(10000)
+agent = DQNAgent(BATCH_SIZE, GAMMA, EPS_START, EPS_END, EPS_DECAY, TAU, LR)
 
 
-steps_done = 0
-
-
-def select_action(state):
-    global steps_done
-    eps_threshold = EPS_END + (EPS_START - EPS_END) * \
-        math.exp(-1. * steps_done / EPS_DECAY)
-    steps_done += 1
-    if random.random() > eps_threshold:
-        # Select best action
-        with torch.no_grad():
-            return policy_net(state).max(1).indices.view(1, 1)
-    else:
-        # Select random action
-        return torch.tensor([[random.choice(actions).value]], device=device, dtype=torch.long)
-    
+   
 episode_durations = []
 
 def plot_durations(show_result=False):
@@ -158,52 +219,6 @@ def plot_durations(show_result=False):
         else:
             display.display(plt.gcf())
 
-def optimize_model():
-    if len(memory) < BATCH_SIZE:
-        return
-    transitions = memory.sample(BATCH_SIZE)
-    # Transpose the batch (see https://stackoverflow.com/a/19343/3343043 for
-    # detailed explanation). This converts batch-array of Transitions
-    # to Transition of batch-arrays.
-    batch = Transition(*zip(*transitions))
-
-    # Compute a mask of non-final states and concatenate the batch elements
-    # (a final state would've been the one after which simulation ended)
-    non_final_mask = torch.tensor(tuple(map(lambda s: s is not None,
-                                          batch.next_state)), device=device, dtype=torch.bool)
-    non_final_next_states = torch.cat([s for s in batch.next_state
-                                                if s is not None])
-    state_batch = torch.cat(batch.state)
-    action_batch = torch.cat(batch.action)
-    reward_batch = torch.cat(batch.reward)
-
-    # Compute Q(s_t, a) - the model computes Q(s_t), then we select the
-    # columns of actions taken. These are the actions which would've been taken
-    # for each batch state according to policy_net
-    state_action_values = policy_net(state_batch).gather(1, action_batch)
-
-    # Compute V(s_{t+1}) for all next states.
-    # Expected values of actions for non_final_next_states are computed based
-    # on the "older" target_net; selecting their best reward with max(1).values
-    # This is merged based on the mask, such that we'll have either the expected
-    # state value or 0 in case the state was final.
-    next_state_values = torch.zeros(BATCH_SIZE, device=device)
-    with torch.no_grad():
-        next_state_values[non_final_mask] = target_net(non_final_next_states).max(1).values
-    # Compute the expected Q values
-    expected_state_action_values = (next_state_values * GAMMA) + reward_batch
-
-    # Compute Huber loss
-    criterion = nn.SmoothL1Loss()
-    loss = criterion(state_action_values, expected_state_action_values.unsqueeze(1))
-
-    # Optimize the model
-    optimizer.zero_grad()
-    loss.backward()
-    # In-place gradient clipping
-    torch.nn.utils.clip_grad_value_(policy_net.parameters(), 100)
-    optimizer.step()
-
 if torch.cuda.is_available() or torch.backends.mps.is_available():
     num_episodes = 600
 else:
@@ -217,6 +232,7 @@ for i_episode in range(num_episodes):
     state = torch.tensor(state, dtype=torch.float32, device=device).unsqueeze(0)
     truncated = False # True when agent takes more than n actions
     terminated = False # True when agent gets all coins
+    total_reward = 0
 
     t = 0
     # Agent naviguates the maze until truncated or terminated
@@ -224,37 +240,36 @@ for i_episode in range(num_episodes):
 
         print(" Step: ", step_count)
         # Select action using Epsilon-Greedy Algorithm
-        action = select_action(state)
+        action = agent.select_action(state)
 
         # Execute action
         observation, reward, terminated = gameloop.step(action.item())
         reward = torch.tensor([reward], device=device)
         done = terminated
 
-        if step_count >= 1000:
-            truncated = True
-
         if terminated:
             next_state = None
         else:
             next_state = torch.tensor(observation, dtype=torch.float32, device=device).unsqueeze(0)
 
+        total_reward += reward
+
         # Store the transition in memory (save experience in memory)
-        memory.push(state, action, next_state, reward)
+        agent.memory.push(state, action, next_state, reward)
 
         # Move to the next state
         state = next_state
 
         # Perform one step of the optimization (on the policy network)
-        optimize_model()
+        agent.optimize_model()
 
         # Soft update of the target network's weights
         # θ′ ← τ θ + (1 −τ )θ′
-        target_net_state_dict = target_net.state_dict()
-        policy_net_state_dict = policy_net.state_dict()
+        target_net_state_dict = agent.target_net.state_dict()
+        policy_net_state_dict = agent.policy_net.state_dict()
         for key in policy_net_state_dict:
             target_net_state_dict[key] = policy_net_state_dict[key]*TAU + target_net_state_dict[key]*(1-TAU)
-        target_net.load_state_dict(target_net_state_dict)
+        agent.target_net.load_state_dict(target_net_state_dict)
 
         if done:
             episode_durations.append(t + 1)
@@ -263,6 +278,7 @@ for i_episode in range(num_episodes):
         
         # Increment step count
         step_count += 1
+    print(f'Episode: {i_episode}, Total reward: {reward}, Epsilon {agent.eps_start}')
 
 print('Complete')
 plot_durations(show_result=True)
