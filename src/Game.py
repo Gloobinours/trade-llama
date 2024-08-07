@@ -20,12 +20,7 @@ class GameLoop:
         """
         self.player: Player = player
         self.maze: Maze = maze
-        self.action: Action = None
-        self.is_step_called: threading.Event = threading.Event()
-        self.has_ended: bool = False
-        self.reward = 0
         self.fog_size = fog_size
-        self.loop()
     
     def draw_maze(self) -> None:
         """Draws the player on the maze
@@ -43,68 +38,49 @@ class GameLoop:
         for row in new_maze:
             print(' '.join(row))
 
-    def loop(self) -> None:
-        """Main game loop function
-        """
-        while True:
-            self.draw_maze()
-
-            if self.action == Action.UP:
-                if self.player.move_up() == False:
-                    reward -= 5
-            elif self.action == Action.RIGHT:
-                if self.player.move_right() == False:
-                    reward -= 5
-            elif self.action == Action.DOWN:
-                if self.player.move_down() == False:
-                    reward -= 5
-            elif self.action == Action.LEFT:
-                if self.player.move_left() == False:
-                    reward -= 5
-            elif self.action == Action.BOMB:
-                self.player.use_bomb
-            else:
-                print('Invalid action')
-            print(f'move player to: ({self.player.x}, {self.player.y})')
-
-            if self.player.touching_coin() == True:
-                self.reward += 10
-            print(self.maze.coin_list, ", Amount: ", self.maze.coin_amount)
-
-            if self.player.all_coins_collected():
-                print("All coins collected")
-                self.reward += 50
-                self.has_ended = True
-                break
-            
-            # Wait until step() is called
-            self.is_step_called.wait()
-            # Reset the event for the next iteration
-            self.is_step_called.clear()
-                
-    def reset(self, seed):
-        self.maze = Maze(self.maze.size, self.maze.coin_amount, seed)
-        self.reward = 0
-        self.player.x = 0
-        self.player.y = 0
-        state = [
-            self.player.x, # Player coords
-            self.player.y,
-            int(self.player.all_coins_collected()), # bool, if coins collected
-            self.player.get_nearest_coin().x, # nearest coin coords
-            self.player.get_nearest_coin().y
-        ]
-
-        for cell in self.maze.generate_fog(self.player.x, self.player.y, self.fog_size):
-            state.append(cell.x)
-            state.append(cell.y)
-
-        return state
-    
     def step(self, action):
-        self.is_step_called.set()
-        self.action = action
-        self.reward -= 0.1
+        """Makes a step in the main game loop
+
+        Args:
+            action (_type_): _description_
+        """
+        self.draw_maze()
+
+        reward = 0
+        is_done = False
+
+        if (action == Action.UP) or (action == Action.UP.value):
+            if self.player.move_up() == False:
+                reward -= 5
+        elif (action == Action.RIGHT) or (action == Action.RIGHT.value):
+            if self.player.move_right() == False:
+                reward -= 5
+        elif (action == Action.DOWN) or (action == Action.DOWN.value):
+            if self.player.move_down() == False:
+                reward -= 5
+        elif (action == Action.LEFT) or (action == Action.LEFT.value):
+            if self.player.move_left() == False:
+                reward -= 5
+        elif (action == Action.BOMB) or (action == Action.BOMB.value):
+            self.player.use_bomb
+        else:
+            print('Invalid action')
+        print(f'move player to: ({self.player.x}, {self.player.y})')
+
+
+        if self.player.touching_coin() == True:
+            self.reward += 10
+        print(self.maze.coin_list, ", Amount: ", self.maze.coin_amount)
+
+        if self.player.all_coins_collected():
+            print("All coins collected")
+            reward += 50
+            is_done = True
+
+        self.state = self.get_state()
+        return self.state, reward, is_done
+
+    def get_state(self):
         state = [
             self.player.x, 
             self.player.y,
@@ -116,5 +92,22 @@ class GameLoop:
             state.append(cell.x)
             state.append(cell.y)
 
-        return(state, self.reward, self.has_ended)
+        return state
+                
+    def reset(self, seed: int) -> list[int]:
+        """Rests the maze to initial step
+
+        Args:
+            seed (int): seed of the maze
+
+        Returns:
+            list[int]: State of the game
+        """
+        self.maze = Maze(self.maze.size, self.maze.coin_amount, seed)
+        self.reward = 0
+        self.player.x = 0
+        self.player.y = 0
+        self.state = self.get_state()
+
+        return self.state
         
