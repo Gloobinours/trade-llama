@@ -40,26 +40,38 @@ class Player:
         # The cell is walkable
         return True
 
-    def move_left(self) -> None:
+    def move_left(self) -> bool:
         """Move player left
         """
         if (self.is_walkable(self.x, self.y-1)):
             self.y -= 1
-    def move_right(self) -> None:
+            return True
+        else:
+            return False
+    def move_right(self) -> bool:
         """Move player right
         """
         if (self.is_walkable(self.x, self.y+1)):
             self.y += 1
-    def move_up(self) -> None:
+            return True
+        else:
+            return False
+    def move_up(self) -> bool:
         """Move player up
         """
         if (self.is_walkable(self.x-1, self.y)):
             self.x -= 1
-    def move_down(self) -> None:
+            return True
+        else:
+            return False
+    def move_down(self) -> bool:
         """Move player down
         """
         if (self.is_walkable(self.x+1, self.y)):
             self.x += 1
+            return True
+        else:
+            return False
 
     def get_nearest_coin(self) -> Cell:
         """Get the position of the closest coin from player
@@ -67,17 +79,14 @@ class Player:
         Returns:
             Cell: closest coin from player
         """
-        closest_dist = -1
-        closest_coin = None
+        closest_dist = float('inf')
+
         for coin in self.maze.coin_list:
             dist = math.dist([self.x, self.y], [coin.x, coin.y])
-            if (closest_dist == 1):
-                closest_dist = dist
-                closest_coin = coin
-                continue
             if (dist < closest_dist):
                 closest_dist = dist
                 closest_coin = coin
+                
         return closest_coin
     
     def all_coins_collected(self) -> bool:
@@ -88,11 +97,12 @@ class Player:
         """
         return len(self.maze.coin_list) == 0
     
-    def touching_coin(self) -> None:
+    def touching_coin(self) -> bool:
         """Delete a coin when the player touches it
         """
         if self.maze.grid[self.x][self.y].state == CellState.COIN:
             self.maze.delete_coin(self.x, self.y)
+            return True
     
     def use_bomb(self):
         """Use bomb to break walls
