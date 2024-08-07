@@ -8,7 +8,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-from Game import GameLoop
+from Game import GameLoop, Action
 import Maze
 from Player import Player
 
@@ -55,9 +55,9 @@ class ReplayMemory(object):
 class DeepQNetwork(nn.Module):
     def __init__(self, n_observations, n_actions):
         super(DeepQNetwork, self).__init__()
-        self.layer1 = nn.Linear(n_observations, 64)
-        self.layer2 = nn.Linear(64, 64)
-        self.layer3 = nn.Linear(64, n_actions)
+        self.layer1 = nn.Linear(n_observations, 128)
+        self.layer2 = nn.Linear(128, 128)
+        self.layer3 = nn.Linear(128, n_actions)
 
     def forward(self, x):
         """Called with either one element to determine next action,
@@ -84,10 +84,10 @@ LR = 1e-4 # the learning rate of the ``AdamW`` optimizer
 # Init the game
 maze: Maze = Maze.Maze(15, 1, a_seed= 10)
 player: Player = Player(0, 0, maze)
-gameloop: GameLoop = GameLoop(player, maze)
 fog_size = 2
+gameloop: GameLoop = GameLoop(player, maze, fog_size = fog_size)
 
-actions = ['UP', 'RIGHT', 'DOWN', 'LEFT', 'BOMB']
+actions = [Action.UP, Action.RIGHT, Action.DOWN, Action.LEFT, Action.BOMB]
 
 n_actions = len(actions) # number of actions (TOP,RIGHT,DOWN,LEFT,BOMB)
 state = {
@@ -129,7 +129,7 @@ def select_action(state):
             # found, so we pick action with the larger expected reward.
             return policy_net(state).max(1).indices.view(1, 1)
     else:
-        return torch.tensor([[random.choice(actions)]], device=device, dtype=torch.long)
+        return torch.tensor([[random.choice(actions).value]], device=device, dtype=torch.long)
     
 episode_durations = []
 
@@ -211,13 +211,13 @@ else:
 
 for i_episode in range(num_episodes):
     # Initialize the environment and get its state
-    state = gameloop.reset()
+    state = gameloop.reset(10)
     state = torch.tensor(state, dtype=torch.float32, device=device).unsqueeze(0)
     for t in count():
         action = select_action(state)
-        observation, reward, terminated, truncated, _ = gameloop.step(action.item())
+        observation, reward, terminated = gameloop.step(action.item())
         reward = torch.tensor([reward], device=device)
-        done = terminated or truncated
+        done = terminated
 
         if terminated:
             next_state = None
