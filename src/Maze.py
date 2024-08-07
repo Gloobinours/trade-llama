@@ -22,6 +22,7 @@ class Cell:
         self.x: int = x
         self.y: int = y
         self.state: CellState = CellState.WALL
+        self.visited = False
 
     def __eq__(self, other) -> bool:
         return self.x == other.x and self.y == other.y
@@ -180,7 +181,7 @@ class Maze:
         res = []
         for i in range(x - size, x + size + 1):
             for j in range(y - size, y + size + 1):
-                if (i >= 0 and j >= 0) and (i <= self.size and j <= self.size):
+                if (i >= 0 and j >= 0) and (i < self.size and j < self.size):
                     res.append(self.grid[i][j])
                 else:
                     cell: Cell = Cell(i, j)

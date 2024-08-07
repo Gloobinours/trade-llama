@@ -1,7 +1,7 @@
 import threading
 from enum import Enum
 from Player import Player
-from Maze import Maze
+from Maze import Cell, Maze
 
 class Action(Enum):
     UP = 0
@@ -21,7 +21,7 @@ class GameLoop:
         self.player: Player = player
         self.maze: Maze = maze
         self.fog_size = fog_size
-    
+            
     def draw_maze(self) -> None:
         """Draws the player on the maze
         """
@@ -53,37 +53,44 @@ class GameLoop:
         # print("Action: ", action, ", ", Action(action).name)
         if (action == Action.UP) or (action == Action.UP.value):
             if self.player.move_up() == False:
-                reward -= 1
+                reward -= 5
             else:
-                reward += 1
+                reward += 10
         elif (action == Action.RIGHT) or (action == Action.RIGHT.value):
             if self.player.move_right() == False:
-                reward -= 1
+                reward -= 5
+            else:
+                reward += 10
         elif (action == Action.DOWN) or (action == Action.DOWN.value):
             if self.player.move_down() == False:
-                reward -= 1
+                reward -= 5
             else:
-                reward += 1
+                reward += 10
         elif (action == Action.LEFT) or (action == Action.LEFT.value):
             if self.player.move_left() == False:
-                reward -= 1
+                reward -= 5
             else:
-                reward += 1
+                reward += 10
         # elif (action == Action.BOMB) or (action == Action.BOMB.value):
         #     self.player.use_bomb
         # else:
         #     print('Invalid action')
         # print(f'move player to: ({self.player.x}, {self.player.y})')
-
-        reward -= 0.1
+            
+        # Reward points when agent visits unvisited cells
+        if self.maze.grid[self.player.x][self.player.y].visited == False:
+            reward += 1
+            self.maze.grid[self.player.x][self.player.y].visited = True             
+            
+        reward -= 1
 
         if self.player.touching_coin() == True:
-            self.reward += 20
+            self.reward += 50000
         # print([str(c) for c in self.maze.coin_list], ", Amount: ", self.maze.coin_amount)
 
         if self.player.all_coins_collected():
             print("All coins collected")
-            reward += 50
+            reward += 100000
             is_done = True
 
         # print('Reward: ', reward)
@@ -92,13 +99,25 @@ class GameLoop:
         return self.state, reward, is_done
 
     def get_state(self):
+        if self.maze.coin_list:
+            x_coin_state = self.player.get_nearest_coin().x
+            y_coin_state = self.player.get_nearest_coin().y
+
         state = [
             self.player.x, 
             self.player.y,
-            int(self.player.all_coins_collected()),
-            self.player.get_nearest_coin().x,
-            self.player.get_nearest_coin().y
+            int(self.player.all_coins_collected())
         ]
+        
+        if x_coin_state != None:
+            state.append(x_coin_state)
+        else:
+            state.append(0)
+        if y_coin_state != None:
+            state.append(y_coin_state)
+        else:
+            state.append(0)
+            
         for cell in self.maze.generate_fog(self.player.x, self.player.y, self.fog_size):
             state.append(cell.x)
             state.append(cell.y)
@@ -121,4 +140,3 @@ class GameLoop:
         self.state = self.get_state()
 
         return self.state
-        

@@ -79,12 +79,12 @@ class DQNAgent:
         self.batch_size = batch_size
         self.gamma = gamma
         self.eps_start = eps_start
-        self.eps_end =eps_end
+        self.eps_end = eps_end
         self.eps_decay = eps_decay
         self.tau = tau
         self.learning_rate = learning_rate
-        self.policy_net = DeepQNetwork(self.get_n_observations(2), self.get_n_actions()).to(device)
-        self.target_net = DeepQNetwork(self.get_n_observations(2), self.get_n_actions()).to(device)
+        self.policy_net = DeepQNetwork(self.get_n_observations(fog_size), self.get_n_actions()).to(device)
+        self.target_net = DeepQNetwork(self.get_n_observations(fog_size), self.get_n_actions()).to(device)
         self.update_target_network()
         self.optimizer = optim.AdamW(self.policy_net.parameters(), lr=LR, amsgrad=True)
         self.memory = ReplayMemory(10000)
@@ -99,7 +99,7 @@ class DQNAgent:
         player_position_features = 2
         all_coins_collected_features = 1
         nearest_coin_features = 2
-        player_vision_features = 8*2 if fog_size == 1 else ((fog_size**2+1)**2)*2
+        player_vision_features = 8*2 if fog_size == 1 else ((fog_size*2+1)**2)*2
         return (player_position_features + player_vision_features + all_coins_collected_features + nearest_coin_features)
 
     def get_n_actions(self):
@@ -114,10 +114,10 @@ class DQNAgent:
         Returns:
             torch.tensor: _description_
         """
-        eps_threshold = self.eps_end + (self.eps_start - self.eps_end) * \
+        self.eps_threshold = self.eps_end + (self.eps_start - self.eps_end) * \
             math.exp(-1. * self.steps_done / self.eps_decay)
         self.steps_done += 1
-        if random.random() > eps_threshold:
+        if random.random() > self.eps_threshold:
             # Select best action
             with torch.no_grad():
                 return self.policy_net(state).max(1).indices.view(1, 1)
@@ -174,14 +174,14 @@ class DQNAgent:
 
 BATCH_SIZE = 128 # the number of transitions sampled from the replay buffer
 GAMMA = 0.99 # discount factor
-EPS_START = 0.9 # the starting value of epsilon
-EPS_END = 0.05 # the final value of epsilon
-EPS_DECAY = 1000 # controls the rate of exponential decay of epsilon, higher means a slower decay
+EPS_START = 1.0 # the starting value of epsilon
+EPS_END = 0.01 # the final value of epsilon
+EPS_DECAY = 10000 # controls the rate of exponential decay of epsilon, higher means a slower decay
 TAU = 0.005 # the update rate of the target network
 LR = 1e-4 # the learning rate of the ``AdamW`` optimizer
 
 # Init the game - TRAINING AGENT
-maze: Maze = Maze.Maze(15, 1, a_seed= 10)
+maze: Maze = Maze.Maze(9, 5, a_seed= 1)
 player: Player = Player(0, 0, maze)
 fog_size = 2
 gameloop: GameLoop = GameLoop(player, maze, fog_size = fog_size)
@@ -222,7 +222,7 @@ def plot_durations(show_result=False):
 if torch.cuda.is_available() or torch.backends.mps.is_available():
     num_episodes = 600
 else:
-    num_episodes = 50
+    num_episodes = 60
 
 step_count = 0
 
@@ -236,7 +236,7 @@ for i_episode in range(num_episodes):
 
     t = 0
     # Agent naviguates the maze until truncated or terminated
-    for _ in range(500):
+    for _ in range(10000):
 
         # print(" Step: ", step_count)
         # Select action using Epsilon-Greedy Algorithm
@@ -278,7 +278,7 @@ for i_episode in range(num_episodes):
         
         # Increment step count
         step_count += 1
-    print(f'Episode: {i_episode}, Total reward: {total_reward}, Epsilon {agent.eps_start}')
+    print(f'Episode: {i_episode}, Total reward: {total_reward}, Epsilon {agent.eps_threshold}')
 
 print('Complete')
 plot_durations(show_result=True)

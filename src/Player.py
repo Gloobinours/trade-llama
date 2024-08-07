@@ -86,8 +86,11 @@ class Player:
             if (dist < closest_dist):
                 closest_dist = dist
                 closest_coin = coin
-                
-        return closest_coin
+        
+        if self.all_coins_collected():
+            return None
+        else:
+            return closest_coin
     
     def all_coins_collected(self) -> bool:
         """Check if all the coins are collected by the player
