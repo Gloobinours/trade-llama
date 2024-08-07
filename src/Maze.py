@@ -180,7 +180,7 @@ class Maze:
         res = []
         for i in range(x - size, x + size + 1):
             for j in range(y - size, y + size + 1):
-                if (i >= 0 and j >= 0) and (i <= self.size and j <= self.size):
+                if (i >= 0 and j >= 0) and (i < self.size and j < self.size):
                     res.append(self.grid[i][j])
                 else:
                     cell: Cell = Cell(i, j)

@@ -75,10 +75,22 @@ class GameLoop:
         #     print('Invalid action')
         # print(f'move player to: ({self.player.x}, {self.player.y})')
 
+
+        # Subtract points when agent goes back on visited cell
+        if Cell(self.player.x, self.player.y) not in self.visited_cells:
+            self.visited_cells.append(Cell(self.player.x, self.player.y))
+        else:
+            reward -= 0.4
+
         reward -= 0.1
 
         if self.player.touching_coin() == True:
             self.reward += 20
+        else:
+            # Subtract points when agent gets further from closest coin
+            nearest = self.player.get_nearest_coin()
+            dist = math.dist([self.player.x, self.player.y], [nearest.x, nearest.y])
+            reward -= dist * 0.1
         # print([str(c) for c in self.maze.coin_list], ", Amount: ", self.maze.coin_amount)
 
         if self.player.all_coins_collected():
@@ -105,7 +117,7 @@ class GameLoop:
 
         return state
                 
-    def reset(self, seed: int) -> list[int]:
+    def reset(self, seed: int = None) -> list[int]:
         """Rests the maze to initial step
 
         Args:
