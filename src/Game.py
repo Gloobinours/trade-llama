@@ -1,7 +1,7 @@
-import threading
+import math
 from enum import Enum
 from Player import Player
-from Maze import Maze
+from Maze import Maze, Cell
 
 class Action(Enum):
     UP = 0
@@ -20,7 +20,8 @@ class GameLoop:
         """
         self.player: Player = player
         self.maze: Maze = maze
-        self.fog_size = fog_size
+        self.fog_size: int = fog_size
+        self.visited_cells: list[Cell] = []
     
     def draw_maze(self) -> None:
         """Draws the player on the maze
@@ -53,22 +54,24 @@ class GameLoop:
         # print("Action: ", action, ", ", Action(action).name)
         if (action == Action.UP) or (action == Action.UP.value):
             if self.player.move_up() == False:
-                reward -= 1
+                reward -= 2
             else:
-                reward += 1
+                reward += 0.1
         elif (action == Action.RIGHT) or (action == Action.RIGHT.value):
             if self.player.move_right() == False:
-                reward -= 1
+                reward -= 2
+            else:
+                reward += 0.1
         elif (action == Action.DOWN) or (action == Action.DOWN.value):
             if self.player.move_down() == False:
-                reward -= 1
+                reward -= 2
             else:
-                reward += 1
+                reward += 0.1
         elif (action == Action.LEFT) or (action == Action.LEFT.value):
             if self.player.move_left() == False:
-                reward -= 1
+                reward -= 2
             else:
-                reward += 1
+                reward += 0.1
         # elif (action == Action.BOMB) or (action == Action.BOMB.value):
         #     self.player.use_bomb
         # else:
