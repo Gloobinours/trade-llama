@@ -182,6 +182,11 @@ class Maze:
             for j in range(y - size, y + size + 1):
                 if (i >= 0 and j >= 0) and (i <= self.size and j <= self.size):
                     res.append(self.grid[i][j])
+                else:
+                    cell: Cell = Cell(i, j)
+                    cell.state = CellState.WALL
+                    res.append(cell)
+
         return res
 
     def delete_coin(self, x, y) -> None:

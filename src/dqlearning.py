@@ -98,15 +98,17 @@ state = {
 }
 
 player_position_features = 2
-player_vision_features = 8 if fog_size == 1 else (fog_size**2+1)**2
 all_coins_collected_features = 1
 nearest_coin_features = 2
+player_vision_features = 8*2 if fog_size == 1 else ((fog_size**2+1)**2)*2
 
 # Number of observations
 n_observations = (player_position_features + player_vision_features + all_coins_collected_features + nearest_coin_features)
 
 policy_net = DeepQNetwork(n_observations, n_actions).to(device)
 target_net = DeepQNetwork(n_observations, n_actions).to(device)
+
+# Step 2: Makes target and policy network the same
 target_net.load_state_dict(policy_net.state_dict())
 
 optimizer = optim.AdamW(policy_net.parameters(), lr=LR, amsgrad=True)
@@ -118,17 +120,15 @@ steps_done = 0
 
 def select_action(state):
     global steps_done
-    sample = random.random()
     eps_threshold = EPS_END + (EPS_START - EPS_END) * \
         math.exp(-1. * steps_done / EPS_DECAY)
     steps_done += 1
-    if sample > eps_threshold:
+    if random.random() > eps_threshold:
+        # Select best action
         with torch.no_grad():
-            # t.max(1) will return the largest column value of each row.
-            # second column on max result is index of where max element was
-            # found, so we pick action with the larger expected reward.
             return policy_net(state).max(1).indices.view(1, 1)
     else:
+        # Select random action
         return torch.tensor([[random.choice(actions).value]], device=device, dtype=torch.long)
     
 episode_durations = []
@@ -209,22 +209,37 @@ if torch.cuda.is_available() or torch.backends.mps.is_available():
 else:
     num_episodes = 50
 
+step_count = 0
+
 for i_episode in range(num_episodes):
     # Initialize the environment and get its state
     state = gameloop.reset(10)
     state = torch.tensor(state, dtype=torch.float32, device=device).unsqueeze(0)
-    for t in count():
+    truncated = False # True when agent takes more than n actions
+    terminated = False # True when agent gets all coins
+
+    t = 0
+    # Agent naviguates the maze until truncated or terminated
+    while (not terminated and not truncated):
+
+        print(" Step: ", step_count)
+        # Select action using Epsilon-Greedy Algorithm
         action = select_action(state)
+
+        # Execute action
         observation, reward, terminated = gameloop.step(action.item())
         reward = torch.tensor([reward], device=device)
         done = terminated
+
+        if step_count >= 1000:
+            truncated = True
 
         if terminated:
             next_state = None
         else:
             next_state = torch.tensor(observation, dtype=torch.float32, device=device).unsqueeze(0)
 
-        # Store the transition in memory
+        # Store the transition in memory (save experience in memory)
         memory.push(state, action, next_state, reward)
 
         # Move to the next state
@@ -245,6 +260,9 @@ for i_episode in range(num_episodes):
             episode_durations.append(t + 1)
             plot_durations()
             break
+        
+        # Increment step count
+        step_count += 1
 
 print('Complete')
 plot_durations(show_result=True)

@@ -1,3 +1,4 @@
+import threading
 from enum import Enum
 from Player import Player
 from Maze import Maze
@@ -20,10 +21,11 @@ class GameLoop:
         self.player: Player = player
         self.maze: Maze = maze
         self.action: Action = None
-        self.is_step_called: bool = False
+        self.is_step_called: threading.Event = threading.Event()
         self.has_ended: bool = False
         self.reward = 0
         self.fog_size = fog_size
+        self.loop()
     
     def draw_maze(self) -> None:
         """Draws the player on the maze
@@ -65,8 +67,9 @@ class GameLoop:
                 print('Invalid action')
             print(f'move player to: ({self.player.x}, {self.player.y})')
 
-            if self.player.touching_coin():
+            if self.player.touching_coin() == True:
                 self.reward += 10
+            print(self.maze.coin_list, ", Amount: ", self.maze.coin_amount)
 
             if self.player.all_coins_collected():
                 print("All coins collected")
@@ -74,10 +77,10 @@ class GameLoop:
                 self.has_ended = True
                 break
             
-            while True:
-                if self.is_step_called == True:
-                    self.is_step_called = False
-                    break
+            # Wait until step() is called
+            self.is_step_called.wait()
+            # Reset the event for the next iteration
+            self.is_step_called.clear()
                 
     def reset(self, seed):
         self.maze = Maze(self.maze.size, self.maze.coin_amount, seed)
@@ -85,13 +88,13 @@ class GameLoop:
         self.player.x = 0
         self.player.y = 0
         state = [
-            self.player.x, 
+            self.player.x, # Player coords
             self.player.y,
-            int(self.player.all_coins_collected()),
-            self.player.get_nearest_coin().x,
+            int(self.player.all_coins_collected()), # bool, if coins collected
+            self.player.get_nearest_coin().x, # nearest coin coords
             self.player.get_nearest_coin().y
         ]
-        
+
         for cell in self.maze.generate_fog(self.player.x, self.player.y, self.fog_size):
             state.append(cell.x)
             state.append(cell.y)
@@ -99,7 +102,7 @@ class GameLoop:
         return state
     
     def step(self, action):
-        self.is_step_called = True
+        self.is_step_called.set()
         self.action = action
         self.reward -= 0.1
         state = [
