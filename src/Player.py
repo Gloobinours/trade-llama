@@ -27,13 +27,16 @@ class Player:
                 True if the cell is walkable (passage or coin)
         """
         if (y < 0 or y >= self.maze.size): 
+            print("\033[H", end='\n')
             print(f"Out of bounds: ({x}, {y})")
             return False
         if (x < 0 or x >= self.maze.size): 
+            print("\033[H", end='\n')
             print(f"Out of bounds: ({x}, {y})")
             return False
         
         if self.maze.grid[x][y].state == CellState.WALL:
+            print("\033[H", end='\n')
             print(f"Wall at: ({x}, {y})")
             return False
         

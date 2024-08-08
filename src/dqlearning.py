@@ -1,5 +1,6 @@
 from collections import deque, namedtuple
 from itertools import count
+import os
 from pathlib import Path
 import datetime
 import math
@@ -123,10 +124,13 @@ class DQNAgent:
     def get_n_observations(self, fog_size):
         player_position_features = 2
         all_coins_collected_features = 1
-        nearest_coin_features = 2
+        nearest_coin_features = 3
+        # visited_cell_feature = 2
+        player_vision_features = 8*3 if fog_size == 1 else ((fog_size*2+1)**2)*3
 
-        player_vision_features = 8*4 if fog_size == 1 else ((fog_size*2+1)**2)*4
-        return (player_position_features + player_vision_features + all_coins_collected_features + nearest_coin_features)
+        # return (player_position_features + player_vision_features + all_coins_collected_features + nearest_coin_features)
+
+        return len(gameloop.get_state())
 
     def get_n_actions(self):
         return len(Action)
@@ -207,8 +211,8 @@ TAU = 0.005 # the update rate of the target network
 LR = 0.001 # the learning rate of the ``AdamW`` optimizer
 
 # Init the game - TRAINING AGENT
-seed = None
-maze: Maze = Maze.Maze(9, 1, a_seed= seed)
+seed = 0
+maze: Maze = Maze.Maze(15, 1, a_seed= seed)
 player: Player = Player(0, 0, maze)
 fog_size = 2
 gameloop: GameLoop = GameLoop(player, maze, fog_size = fog_size)
@@ -253,6 +257,7 @@ else:
 
 step_count = 0
 
+os.system('cls' if os.name == 'nt' else 'clear')
 for i_episode in range(num_episodes):
     # Initialize the environment and get its state
     state = gameloop.reset(seed)
@@ -265,6 +270,12 @@ for i_episode in range(num_episodes):
     # Agent naviguates the maze until truncated or terminated
     while not terminated:
 
+        # Clear the console
+        print("\033[H", end='\n')
+        print('<------------------------------------>')
+        gameloop.draw_maze()
+        print('<------------------------------------>')
+
         # print(" Step: ", step_count)
         # Select action using Epsilon-Greedy Algorithm
         action = agent.select_action(state)
@@ -273,6 +284,7 @@ for i_episode in range(num_episodes):
         observation, reward, terminated = gameloop.step(action.item())
         reward = torch.tensor([reward], device=device)
         done = terminated
+
 
         if terminated:
             next_state = None
@@ -308,10 +320,10 @@ for i_episode in range(num_episodes):
         step_count += 1
     print(f'Episode: {i_episode}, Total reward: {total_reward}, Epsilon {agent.eps_threshold}, Steps: {step_count}')
 
-if input('Save Agent?(y/N) $>').upper() == 'Y':
-    agent.save()
 
 print('Complete')
 plot_durations(show_result=True)
+if input('Save Agent?(y/N) $>').upper() == 'Y':
+    agent.save()
 plt.ioff()
 plt.show()

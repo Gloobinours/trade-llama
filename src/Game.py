@@ -50,8 +50,8 @@ class GameLoop:
         Args:
             action (_type_): _description_
         """
-        self.draw_maze()
-        print('<------------------------------------>')
+        # self.draw_maze()
+        # print('<------------------------------------>')
 
         reward = 0
         is_done = False
@@ -118,13 +118,19 @@ class GameLoop:
             self.player.y,
             int(self.player.all_coins_collected()),
             self.player.get_nearest_coin().x,
-            self.player.get_nearest_coin().y
+            self.player.get_nearest_coin().y,
+            self.player.get_nearest_coin().state.value
         ]
         for cell in self.maze.generate_fog(self.player.x, self.player.y, self.fog_size):
-            state.append(cell.x)
-            state.append(cell.y)
+            state.append(cell.x - self.player.x)
+            state.append(cell.y - self.player.y)
             state.append(cell.state.value)
             state.append(int(cell.visited))
+        
+        # Add aggregate features for visited cells
+        # state.append(len(self.visited_cells))  # Number of visited cells
+        # state.append(sum([abs(self.player.x - cell.x) + abs(self.player.y - cell.y) for cell in self.visited_cells]))  # Sum of distances
+
 
         return np.array(state)
                 
