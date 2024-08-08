@@ -67,6 +67,15 @@ class Maze:
                 neighbors.append(matrix[new_row][new_col])
 
         return neighbors
+    
+    def get_passages(self) -> list[Cell]:
+        passages = []
+        for x in range(len(self.grid)):
+            for y in range(len(self.grid[0])):
+                if (self.grid[x][y].state == CellState.PASSAGE):
+                    passages.append(self.grid[x][y])
+
+        return passages
 
     def generate_grid(self) -> list:
         """Generate the maze grid using DFS

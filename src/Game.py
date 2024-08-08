@@ -41,8 +41,10 @@ class GameLoop:
                     row.append('\033[33m©\033[0m')
             new_maze.append(row)
         
+        print('■ '*(self.maze.size))
         for row in new_maze:
             print(' '.join(row))
+        print('■ '*(self.maze.size))
 
     def step(self, action):
         """Makes a step in the main game loop
@@ -59,16 +61,16 @@ class GameLoop:
         # print("Action: ", action, ", ", Action(action).name)
         if (action == Action.UP) or (action == Action.UP.value):
             if self.player.move_up() == False:
-                reward -= 7
+                reward -= 10
         elif (action == Action.RIGHT) or (action == Action.RIGHT.value):
             if self.player.move_right() == False:
-                reward -= 7
+                reward -= 10
         elif (action == Action.DOWN) or (action == Action.DOWN.value):
             if self.player.move_down() == False:
-                reward -= 7
+                reward -= 10
         elif (action == Action.LEFT) or (action == Action.LEFT.value):
             if self.player.move_left() == False:
-                reward -= 7
+                reward -= 10
         # elif (action == Action.BOMB) or (action == Action.BOMB.value):
         #     self.player.use_bomb
         # else:
@@ -125,12 +127,18 @@ class GameLoop:
             state.append(cell.x - self.player.x)
             state.append(cell.y - self.player.y)
             state.append(cell.state.value)
-            state.append(int(cell.visited))
+            # state.append(int(cell.visited))
+            
+        max_visited_cells = len(self.maze.get_passages())
+        visited_cells = self.visited_cells[:max_visited_cells]
+        for cell in visited_cells:
+            state.append(cell.x - self.player.x)
+            state.append(cell.y - self.player.y)
+            state.append(cell.state.value)
         
-        # Add aggregate features for visited cells
-        # state.append(len(self.visited_cells))  # Number of visited cells
-        # state.append(sum([abs(self.player.x - cell.x) + abs(self.player.y - cell.y) for cell in self.visited_cells]))  # Sum of distances
-
+        # Fill the remaining slots if there are
+        for _ in range(max_visited_cells - len(visited_cells)):
+            state.extend([-1, -1, -1])
 
         return np.array(state)
                 

@@ -5,6 +5,7 @@ from pathlib import Path
 import datetime
 import math
 import random
+import sys
 import matplotlib
 import matplotlib.pyplot as plt
 import torch
@@ -206,12 +207,12 @@ BATCH_SIZE = 128 # the number of transitions sampled from the replay buffer
 GAMMA = 0.99 # discount factor
 EPS_START = 1 # the starting value of epsilon
 EPS_END = 0.05 # the final value of epsilon
-EPS_DECAY = 1000 # controls the rate of exponential decay of epsilon, higher means a slower decay
+EPS_DECAY = 1500 # controls the rate of exponential decay of epsilon, higher means a slower decay
 TAU = 0.005 # the update rate of the target network
 LR = 0.001 # the learning rate of the ``AdamW`` optimizer
 
 # Init the game - TRAINING AGENT
-seed = 0
+seed = 1
 maze: Maze = Maze.Maze(15, 1, a_seed= seed)
 player: Player = Player(0, 0, maze)
 fog_size = 2
@@ -257,6 +258,10 @@ else:
 
 step_count = 0
 
+# Hide cursor
+sys.stdout.write("\033[?25l")
+sys.stdout.flush()
+# clear console
 os.system('cls' if os.name == 'nt' else 'clear')
 for i_episode in range(num_episodes):
     # Initialize the environment and get its state
@@ -318,11 +323,15 @@ for i_episode in range(num_episodes):
         
         # Increment step count
         step_count += 1
+        print(f'# Steps: {step_count}')
     print(f'Episode: {i_episode}, Total reward: {total_reward}, Epsilon {agent.eps_threshold}, Steps: {step_count}')
 
 
 print('Complete')
 plot_durations(show_result=True)
+# Show cursor again
+sys.stdout.write("\033[?25h")
+sys.stdout.flush()
 if input('Save Agent?(y/N) $>').upper() == 'Y':
     agent.save()
 plt.ioff()
