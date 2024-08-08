@@ -1,4 +1,5 @@
 import math
+import numpy as np
 from enum import Enum
 from Player import Player
 from Maze import Maze, Cell, CellState
@@ -49,8 +50,8 @@ class GameLoop:
         Args:
             action (_type_): _description_
         """
-        # self.draw_maze()
-        # print('<------------------------------------>')
+        self.draw_maze()
+        print('<------------------------------------>')
 
         reward = 0
         is_done = False
@@ -58,16 +59,16 @@ class GameLoop:
         # print("Action: ", action, ", ", Action(action).name)
         if (action == Action.UP) or (action == Action.UP.value):
             if self.player.move_up() == False:
-                reward -= 2
+                reward -= 7
         elif (action == Action.RIGHT) or (action == Action.RIGHT.value):
             if self.player.move_right() == False:
-                reward -= 2
+                reward -= 7
         elif (action == Action.DOWN) or (action == Action.DOWN.value):
             if self.player.move_down() == False:
-                reward -= 2
+                reward -= 7
         elif (action == Action.LEFT) or (action == Action.LEFT.value):
             if self.player.move_left() == False:
-                reward -= 2
+                reward -= 7
         # elif (action == Action.BOMB) or (action == Action.BOMB.value):
         #     self.player.use_bomb
         # else:
@@ -77,14 +78,16 @@ class GameLoop:
 
         # Reward points when agent visits unvisited cells
         if self.maze.grid[self.player.x][self.player.y].visited == False:
-            reward += 10
+            reward += 2
             self.maze.grid[self.player.x][self.player.y].visited = True
+        else:
+            reward -= 1
 
         # Punishment for each step
-        # reward -= 1.1
+        reward -= 0.5
 
         if self.player.touching_coin() == True:
-            self.reward += 50
+            self.reward += 100
         # else:
         #     # Subtract points when agent gets further from closest coin
         #     nearest = self.player.get_nearest_coin()
@@ -104,7 +107,12 @@ class GameLoop:
             self.state = self.get_state()
         return self.state, reward, is_done
 
-    def get_state(self):
+    def get_state(self) -> np.array:
+        """State at step t, what the player is aware of
+
+        Returns:
+            np.array: state
+        """
         state = [
             self.player.x, 
             self.player.y,
@@ -115,8 +123,10 @@ class GameLoop:
         for cell in self.maze.generate_fog(self.player.x, self.player.y, self.fog_size):
             state.append(cell.x)
             state.append(cell.y)
+            state.append(cell.state.value)
+            state.append(int(cell.visited))
 
-        return state
+        return np.array(state)
                 
     def reset(self, seed: int = None) -> list[int]:
         """Rests the maze to initial step
