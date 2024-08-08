@@ -79,7 +79,7 @@ class DeepQNetwork(nn.Module):
 
 
 class DQNAgent:
-    def __init__(self, batch_size, gamma, eps_start, eps_end, eps_decay, tau, learning_rate) -> None:
+    def __init__(self, batch_size, gamma, eps_start, eps_end, eps_decay, tau, learning_rate, filename=None) -> None:
         self.batch_size = batch_size
         self.gamma = gamma
         self.eps_start = eps_start
@@ -93,6 +93,25 @@ class DQNAgent:
         self.optimizer = optim.AdamW(self.policy_net.parameters(), lr=LR, amsgrad=True)
         self.memory = ReplayMemory(10000)
         self.steps_done = 0
+        if filename: 
+            self.filename = filename
+            self.load()
+
+    def save(self):
+        date = datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+        base_dir = Path(__file__).resolve().parent.parent
+        weights_dir = base_dir / 'weights' / date
+        weights_dir.mkdir(parents=True, exist_ok=True)
+
+        torch.save(self.policy_net.state_dict(), weights_dir / 'qnetwork_policy.pth')
+        torch.save(self.target_net.state_dict(), weights_dir / 'qnetwork_target.pth')
+
+    def load(self):
+        base_dir = Path(__file__).resolve().parent.parent
+        weights_dir = base_dir / 'weights' / self.filename
+        self.policy_net.load_state_dict(torch.load(weights_dir / 'qnetwork_policy.pth'))
+        self.target_net.load_state_dict(torch.load(weights_dir / 'qnetwork_target.pth'))
+        print(f'LOADED: {self.filename}')
     
     def update_target_network(self):
         """Step 2: Makes policy and target network the same
@@ -284,6 +303,7 @@ for i_episode in range(num_episodes):
         step_count += 1
     print(f'Episode: {i_episode}, Total reward: {total_reward}, Epsilon {agent.eps_threshold}')
 
+agent.save()
 print('Complete')
 plot_durations(show_result=True)
 plt.ioff()
