@@ -143,7 +143,7 @@ class Maze:
             for x in range(len(self.grid)):
                 for y in range(len(self.grid[0])):
                     if self.grid[x][y].state == CellState.PASSAGE:
-                        return [self.grid[x][y]]
+                        return (x,y)
         if len(possible_points) < self.coin_amount:
             self.coin_amount = len(possible_points)
 

@@ -306,7 +306,7 @@ for i_episode in range(num_episodes):
         
         # Increment step count
         step_count += 1
-    print(f'Episode: {i_episode}, Total reward: {total_reward}, Epsilon {agent.eps_threshold}')
+    print(f'Episode: {i_episode}, Total reward: {total_reward}, Epsilon {agent.eps_threshold}, Steps: {step_count}')
 
 if input('Save Agent?(y/N) $>').upper() == 'Y':
     agent.save()
