@@ -22,6 +22,7 @@ class Cell:
         self.x: int = x
         self.y: int = y
         self.state: CellState = CellState.WALL
+        self.visited = False
 
     def __eq__(self, other) -> bool:
         return self.x == other.x and self.y == other.y
@@ -44,7 +45,7 @@ class Maze:
 
         self.coin_amount: int = coin_amount
         self.coin_list = []
-        self.add_coin_to_maze()
+        self.add_coins_to_maze()
 
     def get_neighbors(self, cell: Cell, matrix) -> None:
         """Get neighboring cells, 2 cells away from passed in cell
@@ -142,8 +143,8 @@ class Maze:
             self.coin_amount = len(possible_points)
         return random.sample(possible_points, self.coin_amount)
     
-    def add_coin_to_maze(self) -> None:
-        """Append coin to matrix
+    def add_coins_to_maze(self) -> None:
+        """Append coins to matrix
         """
         coin_pos = self.generate_coins()
         for x in range(len(self.grid)):

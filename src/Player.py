@@ -80,6 +80,7 @@ class Player:
             Cell: closest coin from player
         """
         closest_dist = float('inf')
+        closest_coin = None
 
         for coin in self.maze.coin_list:
             dist = math.dist([self.x, self.y], [coin.x, coin.y])
