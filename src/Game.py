@@ -49,8 +49,8 @@ class GameLoop:
         Args:
             action (_type_): _description_
         """
-        self.draw_maze()
-        print('<------------------------------------>')
+        # self.draw_maze()
+        # print('<------------------------------------>')
 
         reward = 0
         is_done = False
@@ -93,7 +93,7 @@ class GameLoop:
         # print([str(c) for c in self.maze.coin_list], ", Amount: ", self.maze.coin_amount)
 
         if self.player.all_coins_collected():
-            print("All coins collected All coins collected All coins collected All coins collected All coins collected All coins collected All coins collected All coins collected All coins collected All coins collected All coins collected All coins collected All coins collected All coins collected All coins collected All coins collected ")
+            print("All coins collected")
             reward += 300
             is_done = True
 
@@ -127,11 +127,11 @@ class GameLoop:
         Returns:
             list[int]: State of the game
         """
-        self.maze = Maze(self.maze.size, self.maze.coin_amount, seed)
         self.reward = 0
         self.player.x = 0
         self.player.y = 0
+        self.maze = Maze(self.maze.size, self.maze.coin_amount, seed)
+        self.player.maze = self.maze
         self.state = self.get_state()
 
         return self.state
-        

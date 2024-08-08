@@ -179,7 +179,7 @@ class DQNAgent:
 BATCH_SIZE = 128 # the number of transitions sampled from the replay buffer
 GAMMA = 0.99 # discount factor
 EPS_START = 1 # the starting value of epsilon
-EPS_END = 0.05 # the final value of epsilon
+EPS_END = 0.1 # the final value of epsilon
 EPS_DECAY = 2000 # controls the rate of exponential decay of epsilon, higher means a slower decay
 TAU = 0.005 # the update rate of the target network
 LR = 0.001 # the learning rate of the ``AdamW`` optimizer
@@ -224,9 +224,9 @@ def plot_durations(show_result=False):
             display.display(plt.gcf())
 
 if torch.cuda.is_available() or torch.backends.mps.is_available():
-    num_episodes = 600
+    num_episodes = 150
 else:
-    num_episodes = 600
+    num_episodes = 150
 
 step_count = 0
 
@@ -240,7 +240,7 @@ for i_episode in range(num_episodes):
 
     t = 0
     # Agent naviguates the maze until truncated or terminated
-    for _ in range(500):
+    for t in range(500):
 
         # print(" Step: ", step_count)
         # Select action using Epsilon-Greedy Algorithm
