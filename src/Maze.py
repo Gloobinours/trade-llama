@@ -139,8 +139,14 @@ class Maze:
                 if (self.check_adjacent(x, y) and self.grid[x][y].state == CellState.PASSAGE):
                     possible_points.append((x,y))
 
+        if len(possible_points) == 0:
+            for x in range(len(self.grid)):
+                for y in range(len(self.grid[0])):
+                    if self.grid[x][y].state == CellState.PASSAGE:
+                        return [self.grid[x][y]]
         if len(possible_points) < self.coin_amount:
             self.coin_amount = len(possible_points)
+
         return random.sample(possible_points, self.coin_amount)
     
     def add_coins_to_maze(self) -> None:
