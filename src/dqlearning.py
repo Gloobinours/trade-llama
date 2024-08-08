@@ -57,11 +57,11 @@ class ReplayMemory(object):
 class DeepQNetwork(nn.Module):
     def __init__(self, n_observations, n_actions):
         super(DeepQNetwork, self).__init__()
-        self.layer1 = nn.Linear(n_observations, 64)
-        self.layer2 = nn.Linear(64, 64)
-        self.layer3 = nn.Linear(64, 64)
-        self.layer4 = nn.Linear(64, 64)
-        self.layer5 = nn.Linear(64, n_actions)
+        self.layer1 = nn.Linear(n_observations, 128)
+        self.layer2 = nn.Linear(128, 128)
+        self.layer3 = nn.Linear(128, 128)
+        self.layer4 = nn.Linear(128, 128)
+        self.layer5 = nn.Linear(128, n_actions)
 
     def forward(self, x):
         """Called with either one element to determine next action,
@@ -99,7 +99,7 @@ class DQNAgent:
             self.filename = filename
             self.load()
 
-    def save(self):
+    def save(self) -> None:
         date = datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
         base_dir = Path(__file__).resolve().parent.parent
         weights_dir = base_dir / 'weights' / date
@@ -108,7 +108,7 @@ class DQNAgent:
         torch.save(self.policy_net.state_dict(), weights_dir / 'qnetwork_policy.pth')
         torch.save(self.target_net.state_dict(), weights_dir / 'qnetwork_target.pth')
 
-    def load(self):
+    def load(self) -> None:
         base_dir = Path(__file__).resolve().parent.parent
         weights_dir = base_dir / 'weights' / self.filename
         self.policy_net.load_state_dict(torch.load(weights_dir / 'qnetwork_policy.pth'))
@@ -124,7 +124,8 @@ class DQNAgent:
         player_position_features = 2
         all_coins_collected_features = 1
         nearest_coin_features = 2
-        player_vision_features = 8*2 if fog_size == 1 else ((fog_size*2+1)**2)*2
+
+        player_vision_features = 8*4 if fog_size == 1 else ((fog_size*2+1)**2)*4
         return (player_position_features + player_vision_features + all_coins_collected_features + nearest_coin_features)
 
     def get_n_actions(self):
@@ -200,13 +201,14 @@ class DQNAgent:
 BATCH_SIZE = 128 # the number of transitions sampled from the replay buffer
 GAMMA = 0.99 # discount factor
 EPS_START = 1 # the starting value of epsilon
-EPS_END = 0.1 # the final value of epsilon
-EPS_DECAY = 2000 # controls the rate of exponential decay of epsilon, higher means a slower decay
+EPS_END = 0.05 # the final value of epsilon
+EPS_DECAY = 1000 # controls the rate of exponential decay of epsilon, higher means a slower decay
 TAU = 0.005 # the update rate of the target network
 LR = 0.001 # the learning rate of the ``AdamW`` optimizer
 
 # Init the game - TRAINING AGENT
-maze: Maze = Maze.Maze(9, 1, a_seed= 2)
+seed = None
+maze: Maze = Maze.Maze(9, 1, a_seed= seed)
 player: Player = Player(0, 0, maze)
 fog_size = 2
 gameloop: GameLoop = GameLoop(player, maze, fog_size = fog_size)
@@ -228,7 +230,7 @@ def plot_durations(show_result=False):
         plt.clf()
         plt.title('Training...')
     plt.xlabel('Episode')
-    plt.ylabel('Duration')
+    plt.ylabel('Steps')
     plt.plot(durations_t.numpy())
     # Take 100 episode averages and plot them too
     if len(durations_t) >= 100:
@@ -247,13 +249,13 @@ def plot_durations(show_result=False):
 if torch.cuda.is_available() or torch.backends.mps.is_available():
     num_episodes = 150
 else:
-    num_episodes = 150
+    num_episodes = 100
 
 step_count = 0
 
 for i_episode in range(num_episodes):
     # Initialize the environment and get its state
-    state = gameloop.reset(2)
+    state = gameloop.reset(seed)
     state = torch.tensor(state, dtype=torch.float32, device=device).unsqueeze(0)
     truncated = False # True when agent takes more than n actions
     terminated = False # True when agent gets all coins
@@ -261,7 +263,7 @@ for i_episode in range(num_episodes):
 
     t = 0
     # Agent naviguates the maze until truncated or terminated
-    for t in range(500):
+    while not terminated:
 
         # print(" Step: ", step_count)
         # Select action using Epsilon-Greedy Algorithm
@@ -296,6 +298,7 @@ for i_episode in range(num_episodes):
             target_net_state_dict[key] = policy_net_state_dict[key]*agent.tau + target_net_state_dict[key]*(1-agent.tau)
         agent.target_net.load_state_dict(target_net_state_dict)
 
+        t += 1
         if done:
             episode_durations.append(t + 1)
             plot_durations()
@@ -305,7 +308,9 @@ for i_episode in range(num_episodes):
         step_count += 1
     print(f'Episode: {i_episode}, Total reward: {total_reward}, Epsilon {agent.eps_threshold}')
 
-agent.save()
+if input('Save Agent?(y/N) $>').upper() == 'Y':
+    agent.save()
+
 print('Complete')
 plot_durations(show_result=True)
 plt.ioff()
