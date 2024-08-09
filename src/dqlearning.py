@@ -197,9 +197,9 @@ class DQNAgent:
 
 BATCH_SIZE = 128 # the number of transitions sampled from the replay buffer
 GAMMA = 0.99 # discount factor
-EPS_START = 1 # the starting value of epsilon
+EPS_START = 0.9 # the starting value of epsilon
 EPS_END = 0.05 # the final value of epsilon
-EPS_DECAY = 1500 # controls the rate of exponential decay of epsilon, higher means a slower decay
+EPS_DECAY = 1000 # controls the rate of exponential decay of epsilon, higher means a slower decay
 TAU = 0.005 # the update rate of the target network
 LR = 0.001 # the learning rate of the ``AdamW`` optimizer
 
@@ -261,7 +261,7 @@ for i_episode in range(num_episodes):
     state = torch.tensor(state, dtype=torch.float32, device=device).unsqueeze(0)
     truncated = False # True when agent takes more than n actions
     terminated = False # True when agent gets all coins
-    total_reward = 0
+    total_reward = 0.0
 
     t = 0
     # Agent naviguates the maze until truncated or terminated
@@ -318,7 +318,7 @@ for i_episode in range(num_episodes):
         print(f'# Steps: {step_count}')
         print(f'# Epsilon: {agent.eps_threshold}          ')
         print(f'# Reward: {total_reward[0]}         ')
-        input()
+        # input()
     print(f'\n\nEpisode: {i_episode}, Total reward: {total_reward[0]}, Epsilon {agent.eps_threshold}, Steps: {step_count}')
 
 
