@@ -282,8 +282,6 @@ for i_episode in range(num_episodes):
         gameloop.draw_maze()
         print('<------------------------------------>')
 
-        print(f'# Action: {Action(action.item()).name}')
-
         if terminated:
             next_state = None
         else:
@@ -316,7 +314,7 @@ for i_episode in range(num_episodes):
         
         # Increment step count
         step_count += 1
-        
+        print(f'# Action: {Action(action.item()).name}   ')
         print(f'# Steps: {step_count}')
         print(f'# Epsilon: {agent.eps_threshold}')
         print(f'# Reward: {total_reward[0]}')
