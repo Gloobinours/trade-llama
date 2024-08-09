@@ -21,6 +21,7 @@ class GameLoop:
         """
         self.player: Player = player
         self.maze: Maze = maze
+        self.reward = 0
         self.fog_size: int = fog_size
         self.visited_cells: list[Cell] = []
         self.last_visited_cell: Cell = Cell(0,0)
@@ -42,10 +43,8 @@ class GameLoop:
                     row.append('\033[33m©\033[0m')
             new_maze.append(row)
         
-        print('■ '*(self.maze.size))
         for row in new_maze:
             print(' '.join(row))
-        print('■ '*(self.maze.size))
 
     def step(self, action):
         """Makes a step in the main game loop
@@ -56,22 +55,22 @@ class GameLoop:
         # self.draw_maze()
         # print('<------------------------------------>')
 
-        reward = 0
+        self.reward = 0
         is_done = False
 
         # print("Action: ", action, ", ", Action(action).name)
         if (action == Action.UP) or (action == Action.UP.value):
             if self.player.move_up() == False:
-                reward -= 10
+                self.reward -= 10
         elif (action == Action.RIGHT) or (action == Action.RIGHT.value):
             if self.player.move_right() == False:
-                reward -= 10
+                self.reward -= 10
         elif (action == Action.DOWN) or (action == Action.DOWN.value):
             if self.player.move_down() == False:
-                reward -= 10
+                self.reward -= 10
         elif (action == Action.LEFT) or (action == Action.LEFT.value):
             if self.player.move_left() == False:
-                reward -= 10
+                self.reward -= 10
         # elif (action == Action.BOMB) or (action == Action.BOMB.value):
         #     self.player.use_bomb
         # else:
@@ -80,15 +79,16 @@ class GameLoop:
 
 
         # Reward points when agent visits unvisited cells
-        if self.maze.grid[self.player.x][self.player.y].visited == False:
-            reward += 30
-            self.maze.grid[self.player.x][self.player.y].visited = True
-            self.visited_cells.append(self.maze.grid[self.player.x][self.player.y])
+        is_visited_c = self.maze.grid[self.player.x][self.player.y]
+        if is_visited_c.visited == False and is_visited_c.state != CellState.WALL:
+                self.reward += 30
+                is_visited_c.visited = True
+                self.visited_cells.append(is_visited_c)
         else:
-            reward -= 2
+            self.reward -= 2
 
         # Punishment for each step
-        reward -= 0.5
+        # self.reward -= 0.5
 
         # if self.player.x == self.last_visited_cell.x and self.player.y == self.last_visited_cell.y: 
         #     self.reward -= 1
@@ -99,19 +99,19 @@ class GameLoop:
         #     # Subtract points when agent gets further from closest coin
         #     nearest = self.player.get_nearest_coin()
         #     dist = math.dist([self.player.x, self.player.y], [nearest.x, nearest.y])
-        #     reward -= dist * 0.1
+        #     self.reward -= dist * 0.1
         # print([str(c) for c in self.maze.coin_list], ", Amount: ", self.maze.coin_amount)
 
         if self.player.all_coins_collected():
             print("All coins collected")
-            reward += 300
+            self.reward += 300
             is_done = True
 
         if is_done == False:
             self.state = self.get_state()
 
         self.last_visited_cell: Cell = self.maze.grid[self.player.x][self.player.y]
-        return self.state, reward, is_done
+        return self.state, self.reward, is_done
 
     def get_state(self) -> np.array:
         """State at step t, what the player is aware of
@@ -129,11 +129,16 @@ class GameLoop:
             self.last_visited_cell.x,
             self.last_visited_cell.y
         ]
-        for cell in self.maze.generate_fog(self.player.x, self.player.y, self.fog_size):
+        fog = self.maze.generate_fog(self.player.x, self.player.y, self.fog_size)
+        for cell in fog:
             state.append(cell.x - self.player.x)
             state.append(cell.y - self.player.y)
             state.append(cell.state.value)
             # state.append(int(cell.visited))
+
+        # Fill the remaining slots if there are
+        for _ in range(self.fog_size - len(fog)):
+            state.extend([-1, -1, -1])
             
         max_visited_cells = len(self.maze.get_passages())
         visited_cells = self.visited_cells[:max_visited_cells]
