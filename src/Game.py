@@ -126,8 +126,8 @@ class GameLoop:
             self.player.get_nearest_coin().x,
             self.player.get_nearest_coin().y,
             self.player.get_nearest_coin().state.value,
-            self.last_visited_cell.x,
-            self.last_visited_cell.y
+            # self.last_visited_cell.x,
+            # self.last_visited_cell.y
         ]
         fog = self.maze.generate_fog(self.player.x, self.player.y, self.fog_size)
         for cell in fog:
@@ -137,19 +137,20 @@ class GameLoop:
             # state.append(int(cell.visited))
 
         # Fill the remaining slots if there are
-        for _ in range(self.fog_size - len(fog)):
+        actual_fog_size = 9 if self.fog_size == 1 else (self.fog_size*2+1)**2
+        for _ in range(actual_fog_size - len(fog)):
             state.extend([-1, -1, -1])
             
-        max_visited_cells = len(self.maze.get_passages())
-        visited_cells = self.visited_cells[:max_visited_cells]
-        for cell in visited_cells:
-            state.append(cell.x - self.player.x)
-            state.append(cell.y - self.player.y)
-            state.append(cell.state.value)
+        # max_visited_cells = len(self.maze.get_passages())
+        # visited_cells = self.visited_cells[:max_visited_cells]
+        # for cell in visited_cells:
+        #     state.append(cell.x - self.player.x)
+        #     state.append(cell.y - self.player.y)
+        #     state.append(cell.state.value)
         
-        # Fill the remaining slots if there are
-        for _ in range(max_visited_cells - len(visited_cells)):
-            state.extend([-1, -1, -1])
+        # # Fill the remaining slots if there are
+        # for _ in range(max_visited_cells - len(visited_cells)):
+        #     state.extend([-1, -1, -1])
 
         return np.array(state)
                 
