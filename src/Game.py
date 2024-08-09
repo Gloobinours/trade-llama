@@ -60,17 +60,21 @@ class GameLoop:
 
         # print("Action: ", action, ", ", Action(action).name)
         if (action == Action.UP) or (action == Action.UP.value):
-            if self.player.move_up() == False:
+            if not self.player.move_up():
                 self.reward -= 10
+                return self.state, self.reward, is_done
         elif (action == Action.RIGHT) or (action == Action.RIGHT.value):
-            if self.player.move_right() == False:
+            if not self.player.move_right():
                 self.reward -= 10
+                return self.state, self.reward, is_done
         elif (action == Action.DOWN) or (action == Action.DOWN.value):
-            if self.player.move_down() == False:
+            if not self.player.move_down():
                 self.reward -= 10
+                return self.state, self.reward, is_done
         elif (action == Action.LEFT) or (action == Action.LEFT.value):
-            if self.player.move_left() == False:
+            if not self.player.move_left():
                 self.reward -= 10
+                return self.state, self.reward, is_done
         # elif (action == Action.BOMB) or (action == Action.BOMB.value):
         #     self.player.use_bomb
         # else:
@@ -79,11 +83,11 @@ class GameLoop:
 
 
         # Reward points when agent visits unvisited cells
-        is_visited_c = self.maze.grid[self.player.x][self.player.y]
-        if is_visited_c.visited == False and is_visited_c.state != CellState.WALL:
+        current_cell = self.maze.grid[self.player.x][self.player.y]
+        if current_cell.visited == False and current_cell.state != CellState.WALL:
                 self.reward += 30
-                is_visited_c.visited = True
-                self.visited_cells.append(is_visited_c)
+                current_cell.visited = True
+                self.visited_cells.append(current_cell)
         else:
             self.reward -= 2
 
