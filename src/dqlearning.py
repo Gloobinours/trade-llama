@@ -91,8 +91,8 @@ class DQNAgent:
         self.eps_decay = eps_decay
         self.tau = tau
         self.learning_rate = learning_rate
-        self.policy_net = DeepQNetwork(self.get_n_observations(fog_size), self.get_n_actions()).to(device)
-        self.target_net = DeepQNetwork(self.get_n_observations(fog_size), self.get_n_actions()).to(device)
+        self.policy_net = DeepQNetwork(self.get_n_observations(), self.get_n_actions()).to(device)
+        self.target_net = DeepQNetwork(self.get_n_observations(), self.get_n_actions()).to(device)
         self.update_target_network()
         self.optimizer = optim.AdamW(self.policy_net.parameters(), lr=LR, amsgrad=True)
         self.memory = ReplayMemory(10000)
@@ -122,15 +122,7 @@ class DQNAgent:
         """
         self.target_net.load_state_dict(self.policy_net.state_dict())
 
-    def get_n_observations(self, fog_size):
-        player_position_features = 2
-        all_coins_collected_features = 1
-        nearest_coin_features = 3
-        # visited_cell_feature = 2
-        player_vision_features = 8*3 if fog_size == 1 else ((fog_size*2+1)**2)*3
-
-        # return (player_position_features + player_vision_features + all_coins_collected_features + nearest_coin_features)
-
+    def get_n_observations(self):
         return len(gameloop.get_state())
 
     def get_n_actions(self):
@@ -213,7 +205,7 @@ LR = 0.001 # the learning rate of the ``AdamW`` optimizer
 
 # Init the game - TRAINING AGENT
 seed = 1
-maze: Maze = Maze.Maze(15, 1, a_seed= seed)
+maze: Maze = Maze.Maze(13, 1, a_seed= seed)
 player: Player = Player(0, 0, maze)
 fog_size = 2
 gameloop: GameLoop = GameLoop(player, maze, fog_size = fog_size)
@@ -324,6 +316,8 @@ for i_episode in range(num_episodes):
         # Increment step count
         step_count += 1
         print(f'# Steps: {step_count}')
+        print(f'# Epsilon: {agent.eps_threshold}')
+        print(f'# Reward: {total_reward[0]}')
     print(f'Episode: {i_episode}, Total reward: {total_reward}, Epsilon {agent.eps_threshold}, Steps: {step_count}')
 
 

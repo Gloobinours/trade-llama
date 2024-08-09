@@ -23,6 +23,7 @@ class GameLoop:
         self.maze: Maze = maze
         self.fog_size: int = fog_size
         self.visited_cells: list[Cell] = []
+        self.last_visited_cell: Cell = Cell(0,0)
     
     def draw_maze(self) -> None:
         """Draws the player on the maze
@@ -80,13 +81,17 @@ class GameLoop:
 
         # Reward points when agent visits unvisited cells
         if self.maze.grid[self.player.x][self.player.y].visited == False:
-            reward += 2
+            reward += 30
             self.maze.grid[self.player.x][self.player.y].visited = True
+            self.visited_cells.append(self.maze.grid[self.player.x][self.player.y])
         else:
-            reward -= 1
+            reward -= 2
 
         # Punishment for each step
         reward -= 0.5
+
+        # if self.player.x == self.last_visited_cell.x and self.player.y == self.last_visited_cell.y: 
+        #     self.reward -= 1
 
         if self.player.touching_coin() == True:
             self.reward += 100
@@ -102,11 +107,10 @@ class GameLoop:
             reward += 300
             is_done = True
 
-
-        # print('Reward: ', reward)
-
         if is_done == False:
             self.state = self.get_state()
+
+        self.last_visited_cell: Cell = self.maze.grid[self.player.x][self.player.y]
         return self.state, reward, is_done
 
     def get_state(self) -> np.array:
@@ -121,7 +125,9 @@ class GameLoop:
             int(self.player.all_coins_collected()),
             self.player.get_nearest_coin().x,
             self.player.get_nearest_coin().y,
-            self.player.get_nearest_coin().state.value
+            self.player.get_nearest_coin().state.value,
+            self.last_visited_cell.x,
+            self.last_visited_cell.y
         ]
         for cell in self.maze.generate_fog(self.player.x, self.player.y, self.fog_size):
             state.append(cell.x - self.player.x)
@@ -154,6 +160,8 @@ class GameLoop:
         self.reward = 0
         self.player.x = 0
         self.player.y = 0
+        self.visited_cells = []
+        self.last_visited_cell = Cell(0, 0)
         self.maze = Maze(self.maze.size, self.maze.coin_amount, seed)
         self.player.maze = self.maze
         self.state = self.get_state()
