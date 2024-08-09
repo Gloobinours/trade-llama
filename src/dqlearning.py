@@ -59,11 +59,11 @@ class ReplayMemory(object):
 class DeepQNetwork(nn.Module):
     def __init__(self, n_observations, n_actions):
         super(DeepQNetwork, self).__init__()
-        self.layer1 = nn.Linear(n_observations, 4096)
-        self.layer2 = nn.Linear(4096, 4096)
-        self.layer3 = nn.Linear(4096, 4096)
-        self.layer4 = nn.Linear(4096, 4096)
-        self.layer5 = nn.Linear(4096, n_actions)
+        self.layer1 = nn.Linear(n_observations, 128)
+        self.layer2 = nn.Linear(128, 128)
+        self.layer3 = nn.Linear(128, 128)
+        self.layer4 = nn.Linear(128, 128)
+        self.layer5 = nn.Linear(128, n_actions)
 
     def forward(self, x):
         """Called with either one element to determine next action,
@@ -267,12 +267,6 @@ for i_episode in range(num_episodes):
     # Agent naviguates the maze until truncated or terminated
     while not terminated:
 
-        # Clear the console
-        print("\033[H", end='\n')
-        print('<------------------------------------>')
-        gameloop.draw_maze()
-        print('<------------------------------------>')
-
         # print(" Step: ", step_count)
         # Select action using Epsilon-Greedy Algorithm
         action = agent.select_action(state)
@@ -282,6 +276,13 @@ for i_episode in range(num_episodes):
         reward = torch.tensor([reward], device=device)
         done = terminated
 
+        # Clear the console
+        print("\033[H", end='\n')
+        print('<------------------------------------>')
+        gameloop.draw_maze()
+        print('<------------------------------------>')
+
+        print(f'# Action: {Action(action.item()).name}')
 
         if terminated:
             next_state = None
@@ -315,7 +316,7 @@ for i_episode in range(num_episodes):
         
         # Increment step count
         step_count += 1
-        print(f'# Action: {Action([0][0]).name}')
+        
         print(f'# Steps: {step_count}')
         print(f'# Epsilon: {agent.eps_threshold}')
         print(f'# Reward: {total_reward[0]}')
